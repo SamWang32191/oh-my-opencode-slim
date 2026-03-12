@@ -1,5 +1,5 @@
 import { type Dirent, existsSync } from 'node:fs';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, dirname, join, relative } from 'node:path';
 import { parseFrontmatter } from '../utils';
@@ -101,8 +101,15 @@ async function collectSkillFiles(
 
   for (const entry of entries) {
     const entryPath = join(currentDir, entry.name);
+    const isDirectory =
+      entry.isDirectory() ||
+      (entry.isSymbolicLink() &&
+        (await stat(entryPath).then(
+          (stats) => stats.isDirectory(),
+          () => false,
+        )));
 
-    if (entry.isDirectory()) {
+    if (isDirectory) {
       const skillFilePath = join(entryPath, 'SKILL.md');
       if (existsSync(skillFilePath)) {
         files.push({

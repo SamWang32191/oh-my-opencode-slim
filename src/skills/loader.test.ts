@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it } from 'bun:test';
-import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { discoverAllSkills, loadSkillsFromDirectories } from './loader';
@@ -97,6 +104,44 @@ describe('loadSkillsFromDirectories', () => {
 
     expect(skills['repo-map']?.description).toBe('Deep skill');
     expect(skills['repo-map']?.template).toContain('Deep prompt');
+  });
+
+  it('loads a skill from a symlinked skill directory', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
+    const targetRoot = await mkdtemp(join(tmpdir(), 'skill-loader-target-'));
+    tempDirs.push(root, targetRoot);
+    const skillDir = join(targetRoot, 'planning-with-files');
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, 'SKILL.md'),
+      '---\ndescription: Planning skill\n---\nPlan carefully\n',
+    );
+    await symlink(skillDir, join(root, 'planning-with-files'));
+
+    const skills = await loadSkillsFromDirectories([
+      { path: root, source: 'agents' },
+    ]);
+
+    expect(skills['planning-with-files']?.description).toBe('Planning skill');
+  });
+
+  it('recurses into symlinked directories that contain nested skills', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'skill-loader-'));
+    const targetRoot = await mkdtemp(join(tmpdir(), 'skill-loader-target-'));
+    tempDirs.push(root, targetRoot);
+    const skillDir = join(targetRoot, 'superpowers', 'brainstorming');
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, 'SKILL.md'),
+      '---\ndescription: Brainstorm\n---\nBrainstorm carefully\n',
+    );
+    await symlink(join(targetRoot, 'superpowers'), join(root, 'superpowers'));
+
+    const skills = await loadSkillsFromDirectories([
+      { path: root, source: 'agents' },
+    ]);
+
+    expect(skills.brainstorming?.description).toBe('Brainstorm');
   });
 
   it('ignores non-skill markdown files', async () => {
