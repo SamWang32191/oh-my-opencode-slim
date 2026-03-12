@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `skill-description-run-loop-may-need-manual-fallback` | project | `skills`, `description`, `evals`, `tooling` | 2026-03-12 |
 | `git-fetch-multiple-remotes-needs-separate-commands` | project | `git`, `remotes`, `commands`, `workflow` | 2026-03-12 |
 | `skill-evals-should-inline-skill-context-for-subagents` | project | `skills`, `evals`, `subagents`, `prompts` | 2026-03-12 |
 | `skill-loader-must-deduplicate-realpath-traversal` | project | `skills`, `loader`, `symlink`, `traversal` | 2026-03-12 |
