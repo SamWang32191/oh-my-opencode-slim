@@ -12,6 +12,8 @@ import {
   createPostReadNudgeHook,
 } from './hooks';
 import { createBuiltinMcps } from './mcp';
+import { discoverAllSkills } from './skills/loader';
+import { mergeSkillCommands } from './skills/register';
 import {
   ast_grep_replace,
   ast_grep_search,
@@ -110,8 +112,12 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     mcp: mcps,
 
     config: async (opencodeConfig: Record<string, unknown>) => {
+      const loadedSkills = await discoverAllSkills(ctx.directory);
+
       (opencodeConfig as { default_agent?: string }).default_agent =
         'orchestrator';
+
+      mergeSkillCommands(opencodeConfig, loadedSkills);
 
       // Merge Agent configs
       if (!opencodeConfig.agent) {
