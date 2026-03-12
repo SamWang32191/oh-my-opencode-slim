@@ -1,0 +1,171 @@
+{
+  "skill_name": "fork-sync-workflow",
+  "description": "Use when a user asks about a fork or forked Git repository, fork workflow, origin and upstream remotes, sync upstream, sync a fork, fork sync, \u5206\u53c9\u5009\u5eab, \u540c\u6b65 upstream, \u540c\u6b65 fork, \u5206\u652f\u7b56\u7565, review branch, private branch, merge vs rebase, master or main, \u9810\u8a2d\u5206\u652f, squash merge, or how to keep a fork aligned with upstream after a PR merge. Use this whenever fork sync or branch strategy is part of the request, even if the user asks about only one step.",
+  "results": [
+    {
+      "query": "\u6211\u7684 repo \u662f fork \u4f86\u7684\uff0corigin \u6307\u5230\u6211\u81ea\u5df1\u7684 GitHub fork\uff0cupstream \u662f\u539f\u4f5c\u8005 repo\u3002\u6211\u60f3\u9577\u671f\u7dad\u8b77\u81ea\u5df1\u7684 patch\uff0c\u800c\u4e14\u6700\u5f8c\u90fd\u6703 squash merge \u56de master\uff0c\u5206\u652f\u8981\u600e\u9ebc\u7ba1\u6bd4\u8f03\u4e7e\u6de8\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u6709\u500b\u79c1\u4eba branch \u9084\u6c92\u958b PR\uff0c\u4e5f\u6c92\u5206\u4eab\u7d66\u5225\u4eba\u3002\u4e0a\u6e38\u66f4\u65b0\u4e86\uff0c\u6211\u60f3\u4fdd\u6301\u6b77\u53f2\u4e7e\u6de8\uff0c\u6700\u5f8c\u9084\u662f squash merge\u3002\u9019\u6642\u5019\u5efa\u8b70\u6211 rebase \u55ce\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u9019\u500b fork \u5230\u5e95\u662f\u7528 main \u9084\u662f master \u6211\u6709\u9ede\u5fd8\u4e86\u3002\u540c\u6b65 upstream \u4e4b\u524d\uff0c\u6211\u61c9\u8a72\u5148\u67e5\u54ea\u4e9b git / gh \u6307\u4ee4\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "upstream/master \u525b\u66f4\u65b0\uff0c\u4f46\u6211\u624b\u4e0a\u6709\u4e00\u500b\u6b63\u5728 review \u7684 feature branch\u3002\u9019\u500b branch \u4e4b\u5f8c\u6703 squash merge \u56de\u6211\u7684 fork\u3002\u73fe\u5728\u8a72 rebase \u9084\u662f merge\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u525b\u8dd1\u5b8c\u6bd4\u5c0d\uff0corigin/master \u548c upstream/master \u597d\u50cf\u4e00\u6a23\u3002\u9019\u7a2e\u60c5\u6cc1\u9084\u8981 merge upstream \u55ce\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u7684 fork \u5e73\u5e38\u90fd\u5f9e upstream \u8ddf\u65b0\u529f\u80fd\uff0c\u6211\u504f\u597d squash merge\u3002\u53ef\u4ee5\u5e6b\u6211\u6574\u7406\u4e00\u5957\u56fa\u5b9a git flow \u55ce\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u73fe\u5728 branch \u5df2\u7d93\u4e1f\u7d66\u540c\u4e8b review \u4e86\uff0c\u4f46 upstream \u53c8\u524d\u9032\u5169\u500b commit\u3002\u6211\u8981\u600e\u9ebc\u66f4\u65b0 branch \u624d\u4e0d\u6703\u628a review \u6b77\u53f2\u641e\u4e82\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u60f3\u78ba\u8a8d\u81ea\u5df1\u7684 fork default branch \u662f main \u9084\u662f master\uff0c\u518d\u6c7a\u5b9a\u5f8c\u9762\u6240\u6709\u540c\u6b65\u6307\u4ee4\uff0c\u4f60\u6703\u5148\u505a\u54ea\u4e9b\u6aa2\u67e5\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u5728 fork repo \u88e1\u9762\uff0corigin \u662f\u6211\u81ea\u5df1\uff0cupstream \u662f\u5b98\u65b9\u3002\u4e4b\u5f8c\u6bcf\u500b feature \u90fd\u6703 squash merge \u56de\u53bb\u3002\u8acb\u76f4\u63a5\u7d66\u6211\u63a8\u85a6\u7684 branch model \u8ddf\u540c\u6b65\u65b9\u5f0f\u3002",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u525b\u628a PR merge \u56de\u81ea\u5df1\u7684 fork \u4e86\uff0c\u63a5\u4e0b\u4f86\u8981\u4e0d\u8981\u522a branch\u3001\u600e\u9ebc\u4fdd\u6301 master \u8ddf upstream \u5c0d\u9f4a\uff1f",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "\u6211\u7684 feature branch \u5728 review \u4e2d\uff0c\u4f46 CI \u58de\u4e86\uff0c\u5e6b\u6211\u770b\u662f\u54ea\u500b test \u639b\u6389\u3002",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u5e6b\u6211\u628a\u9019\u500b function rename \u6210 getCurrentWorkingDirectory\uff0c\u6574\u500b repo \u4e00\u8d77\u6539\u3002",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u6211\u8981\u628a GitHub \u4e0a\u90a3\u500b PR \u7528 squash merge \u5408\u6389\uff0c\u9806\u4fbf\u522a branch\u3002",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u8acb\u89e3\u91cb\u4e00\u4e0b git fetch \u8ddf git pull \u5dee\u5728\u54ea\u3002",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u6211\u6709 main\u3001staging\u3001production \u4e09\u689d\u9577\u671f\u5206\u652f\uff0c\u60f3\u505a release train\uff0c\u5206\u652f\u7b56\u7565\u600e\u9ebc\u8a2d\u8a08\uff1f",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u6211\u60f3\u628a upstream remote \u52a0\u5230\u9019\u500b repo\uff0c\u53ef\u4ee5\u7d66\u6211\u6307\u4ee4\u55ce\uff1f",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u6211\u7684 repo \u4e0d\u662f fork\uff0c\u53ea\u662f\u55ae\u7d14\u8ddf origin/main \u5354\u4f5c\u3002feature branch \u8981\u4e0d\u8981 rebase\uff1f",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u6211\u60f3\u77e5\u9053 PR comment \u8981\u600e\u9ebc\u7528 gh CLI \u56de\u8986 inline review\u3002",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u5e6b\u6211\u770b\u9019\u500b GitHub Action workflow \u70ba\u4ec0\u9ebc\u6c92\u89f8\u767c\u3002",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "\u6211\u6709 stacked diffs\uff0cbranch A \u758a\u5728 branch B \u4e0a\uff0c\u4e4b\u5f8c\u518d\u758a\u5230 main\u3002\u9019\u7a2e branch \u7ba1\u7406\u600e\u9ebc\u505a\u6bd4\u8f03\u597d\uff1f",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "passed": 10,
+    "failed": 10
+  }
+}

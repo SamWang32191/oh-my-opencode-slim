@@ -1,0 +1,6 @@
+{
+  "eval_id": 4,
+  "eval_name": "verify-base-branch",
+  "prompt": "我不確定這個 fork 現在到底是用 master 還是 main。要同步 upstream 之前，應該先查什麼？",
+  "assertions": []
+}

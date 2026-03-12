@@ -1,0 +1,6 @@
+{
+  "eval_id": 5,
+  "eval_name": "no-sync-needed",
+  "prompt": "我剛比對過，origin/master 跟 upstream/master 看起來沒有差。這時候還要不要 merge upstream？",
+  "assertions": []
+}

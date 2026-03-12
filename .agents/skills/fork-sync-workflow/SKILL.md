@@ -1,6 +1,6 @@
 ---
 name: fork-sync-workflow
-description: Use when a user is working in a forked Git repository and needs branch-strategy advice involving origin and upstream remotes, syncing upstream into a fork, deciding merge vs rebase for a reviewed or private feature branch, checking whether the long-lived branch is main or master, or maintaining a squash-merge workflow. Use this whenever a fork-sync question appears, even if the user asks about only one step.
+description: Use when a user asks about a fork or forked Git repository, fork workflow, origin and upstream remotes, sync upstream, sync a fork, fork sync, 分叉倉庫, 同步 upstream, 同步 fork, 分支策略, review branch, private branch, merge vs rebase, master or main, 預設分支, squash merge, or how to keep a fork aligned with upstream after a PR merge. Use this whenever fork sync or branch strategy is part of the request, even if the user asks about only one step.
 ---
 
 # Fork Sync Workflow
@@ -42,6 +42,8 @@ gh repo view --json defaultBranchRef 2>/dev/null
 ```
 
 If those checks show `main` or another branch instead of `master`, update the recommendation to match reality.
+
+If the user only asked how to verify the real long-lived branch, stop after the verification commands and a short note on how later commands should adapt. Do not add unrelated setup steps like `git remote add upstream`, and do not continue into sync commands unless the user asked for them.
 
 When both `origin` and `upstream` exist, fetch them with separate commands:
 
@@ -108,8 +110,10 @@ git rev-list --left-right --count origin/master...upstream/master
 
 Interpret the result before giving the next step:
 - `0 0` means the fork's `master` is already aligned with `upstream/master`
-- non-zero on the right means upstream has commits the fork has not merged yet
+- non-zero on the right means upstream is ahead of the fork, so a merge is needed if the user wants to sync now
 - non-zero on the left means the fork has fork-only commits on `master`, so call that out explicitly before merging
+
+If the user only said the branches "look the same" and did not provide an actual count, do not invent one. Never fabricate a specific output such as `4 0` or `0 3`. Show the comparison command, explain how to read it, and state that `0 0` means no merge is needed.
 
 After the merge, recommend verification that matches the repo, then push:
 
@@ -196,6 +200,7 @@ Keep branch names, remote names, and command blocks in monospace.
 If the answer includes a `master` sync example, use the full `git fetch origin --prune` -> `git fetch upstream --prune` -> `git switch master` -> `git pull --ff-only origin master` -> `git merge upstream/master` sequence.
 If the repo's real long-lived branch is uncertain, say so and show the verification commands before giving branch-specific advice.
 If the user asks to sync upstream, mention whether the sync is actually needed after comparing `origin/master` and `upstream/master`.
+If the user only asked whether a sync is needed, answer that question directly before showing any follow-up merge commands. If the answer is "no" for `0 0`, stop there unless the user asks what to do next.
 
 ## Common Mistakes
 
