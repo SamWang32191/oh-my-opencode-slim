@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "review-branch-sync",
+  "prompt": "upstream/master 剛更新，我目前有一個正在 review 的 feature branch，最後會 squash merge 回我自己的 master。現在要怎麼同步比較穩？",
+  "assertions": []
+}

@@ -18,6 +18,18 @@
       "prompt": "我的 feature branch 還沒開 PR，也還沒分享給別人。上游更新了，我想保持 branch 歷史乾淨，但最後還是會 squash merge。這時候該 merge 還是 rebase？",
       "expected_output": "Allows rebase for an unshared private branch, but still frames it around syncing master first and warns that the answer changes once the branch is shared or in review.",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "我不確定這個 fork 現在到底是用 master 還是 main。要同步 upstream 之前，應該先查什麼？",
+      "expected_output": "Tells the user to verify the real long-lived branch before assuming master, using commands such as git remote show origin and gh repo view, then adapt all later commands to that branch.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "我剛比對過，origin/master 跟 upstream/master 看起來沒有差。這時候還要不要 merge upstream？",
+      "expected_output": "Uses a comparison step like git rev-list --left-right --count and says no merge is needed when the result shows 0 0, while still calling out when sync would be necessary.",
+      "files": []
     }
   ]
 }

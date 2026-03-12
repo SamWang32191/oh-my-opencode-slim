@@ -18,6 +18,8 @@ This workflow assumes:
 - the fork's long-lived integration branch is `master`
 - feature work lands back into the fork with squash merge
 
+If the repository actually uses `main` or another long-lived branch, verify that first and adapt the branch name consistently instead of blindly applying `master` commands.
+
 ## First Checks
 
 Before recommending commands, inspect the current state:
@@ -30,7 +32,25 @@ git status
 
 If the user already mentioned remote names or branch names, verify them instead of assuming.
 
-When answering, mirror the user's language. If the user writes in Traditional Chinese, answer fully in Traditional Chinese and avoid Simplified Chinese wording.
+When answering, mirror the user's language. If the user writes in Traditional Chinese, answer fully in Traditional Chinese for headings, connective phrases, and explanations, and avoid Simplified Chinese wording.
+
+Then verify the repository's real long-lived branch before assuming `master`:
+
+```bash
+git remote show origin
+gh repo view --json defaultBranchRef 2>/dev/null
+```
+
+If those checks show `main` or another branch instead of `master`, update the recommendation to match reality.
+
+When both `origin` and `upstream` exist, fetch them with separate commands:
+
+```bash
+git fetch origin --prune
+git fetch upstream --prune
+```
+
+Do not use `git fetch origin upstream --prune`; that does not fetch two remotes the way people expect.
 
 ## Default Branch Model
 
@@ -71,13 +91,25 @@ Do not recommend a `develop` branch unless the user has a concrete release-manag
 Update `master` first. The default is to merge `upstream/master` into the fork's `master`:
 
 ```bash
-git fetch origin upstream --prune
+git fetch origin --prune
+git fetch upstream --prune
 git switch master
 git pull --ff-only origin master
 git merge upstream/master
 ```
 
-When showing a `master` sync block, prefer this full sequence over a shortened version unless the user explicitly asks for the shortest possible commands.
+When showing a `master` sync block, use this full sequence verbatim in copy-pastable command examples unless the user explicitly asks for a shorter conceptual answer.
+
+Before recommending the merge, check whether sync is actually needed:
+
+```bash
+git rev-list --left-right --count origin/master...upstream/master
+```
+
+Interpret the result before giving the next step:
+- `0 0` means the fork's `master` is already aligned with `upstream/master`
+- non-zero on the right means upstream has commits the fork has not merged yet
+- non-zero on the left means the fork has fork-only commits on `master`, so call that out explicitly before merging
 
 After the merge, recommend verification that matches the repo, then push:
 
@@ -98,10 +130,11 @@ The safer default is:
 1. sync `master` from `upstream/master`
 2. update the feature branch from the latest `master`
 
-If the branch is already pushed, already under review, or might be consumed by others, prefer merge:
+If the branch is already pushed, already under review, or might be consumed by others, prefer merge. Do not collapse the sync block into only `git fetch upstream` or omit `git pull --ff-only origin master` in a command-focused answer:
 
 ```bash
-git fetch origin upstream --prune
+git fetch origin --prune
+git fetch upstream --prune
 git switch master
 git pull --ff-only origin master
 git merge upstream/master
@@ -109,6 +142,7 @@ git push origin master
 
 git switch feat/my-branch
 git merge master
+git push origin feat/my-branch
 ```
 
 This keeps review history stable and avoids force-pushing rewritten commits during review.
@@ -118,16 +152,22 @@ This keeps review history stable and avoids force-pushing rewritten commits duri
 If the branch is still private, not yet shared, and the user wants a linear local history, rebase is acceptable:
 
 ```bash
-git fetch origin upstream --prune
+git fetch origin --prune
+git fetch upstream --prune
 git switch master
 git pull --ff-only origin master
 git merge upstream/master
+git push origin master
 
 git switch feat/my-branch
 git rebase master
 ```
 
-If the branch was already pushed, mention that `git push --force-with-lease` will be required after rebase and call out the risk explicitly.
+If the branch was already pushed, mention that `git push --force-with-lease` will be required after rebase and call out the risk explicitly:
+
+```bash
+git push --force-with-lease origin feat/my-branch
+```
 
 ### 5. User prefers squash merge
 
@@ -153,7 +193,9 @@ When advising the user, structure the answer in this order:
 
 Keep the commands copy-pastable. Avoid long Git theory unless the user asks for it.
 Keep branch names, remote names, and command blocks in monospace.
-If the answer includes a `master` sync example, use the full `git fetch origin upstream --prune` -> `git switch master` -> `git pull --ff-only origin master` -> `git merge upstream/master` sequence.
+If the answer includes a `master` sync example, use the full `git fetch origin --prune` -> `git fetch upstream --prune` -> `git switch master` -> `git pull --ff-only origin master` -> `git merge upstream/master` sequence.
+If the repo's real long-lived branch is uncertain, say so and show the verification commands before giving branch-specific advice.
+If the user asks to sync upstream, mention whether the sync is actually needed after comparing `origin/master` and `upstream/master`.
 
 ## Common Mistakes
 
@@ -162,6 +204,8 @@ If the answer includes a `master` sync example, use the full `git fetch origin u
 - syncing a feature branch directly from `upstream/master` instead of from the fork's updated `master`
 - force-pushing a rebased shared branch without warning about the consequences
 - adding `develop` out of habit when `master + short-lived feature branches` is enough
+- using one `git fetch` command as if it can fetch both `origin` and `upstream`
+- merging upstream even when `origin/master` and `upstream/master` are already aligned
 
 ## Quick Answers
 
@@ -171,7 +215,7 @@ If the answer includes a `master` sync example, use the full `git fetch origin u
 - squash merge features back into `master`
 
 **If the user asks "Upstream updated, what now?"**
-- sync `master` first
+- compare `origin/master` and `upstream/master` first, then sync `master` if needed
 - then decide whether the feature branch should merge `master` or rebase onto it
 
 **If the user asks "Should I rebase?"**
