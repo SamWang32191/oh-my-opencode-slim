@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Publish this fork under the new npm identity `oh-my-opencode-medium` with clear upstream attribution, consistent user-facing naming, and a safe migration path for existing users.
+**Goal:** Publish this fork under the new npm identity `oh-my-opencode-medium` with clear upstream attribution, consistent user-facing naming, and explicit migration instructions for existing users.
 
-**Architecture:** Implement the rename in three layers. First, lock the actual npm publish target (`oh-my-opencode-medium` or fallback `@w32191/oh-my-opencode-medium`). Second, update package metadata, plugin/runtime constants, and CLI surface area to use the new public identity while preserving compatibility where needed. Third, update docs and migration guidance, then verify the published payload with local checks before the first npm release.
+**Architecture:** Implement the rename in three layers. First, lock the actual npm publish target (`oh-my-opencode-medium` or fallback `@w32191/oh-my-opencode-medium`). Second, update package metadata, plugin/runtime constants, config naming, and CLI surface area to use the new public identity. Third, update docs with explicit migration steps, then verify the published payload with local checks before the first npm release.
 
 **Tech Stack:** TypeScript, Bun test runner, npm publishing, Biome, OpenCode plugin runtime
 
@@ -24,8 +24,8 @@
 - `src/cli/custom-skills.ts` - user-facing references to the project/package root
 - `src/cli/paths.ts` - plugin config filename helpers
 - `src/cli/paths.test.ts` - config filename expectations
-- `src/config/loader.ts` - plugin config discovery, prompts dir naming, and preset env fallback behavior
-- `src/config/loader.test.ts` - config discovery tests for renamed and legacy filenames
+- `src/config/loader.ts` - plugin config discovery, prompts dir naming, and preset env naming for the medium identity
+- `src/config/loader.test.ts` - config discovery tests for medium-only filenames and identifiers
 - `src/cli/config-io.ts` - config write/read messaging and plugin entry package-name updates
 - `src/cli/config-io.test.ts` - config path and output assertions
 - `src/cli/config-manager.test.ts` - config manager expectations tied to plugin filename/package name
@@ -40,12 +40,21 @@
 
 - Prefer the unscoped publish target `oh-my-opencode-medium` if npm name availability allows it.
 - If the unscoped name is taken, switch the package name and install snippets to `@w32191/oh-my-opencode-medium`, but keep the CLI executable name unscoped as `oh-my-opencode-medium`.
-- Introduce compatibility for legacy config filenames: prefer new `oh-my-opencode-medium.json` / `.jsonc` paths, but continue reading old `oh-my-opencode-slim.json` / `.jsonc` files if present.
+- Use `oh-my-opencode-medium.json` / `.jsonc` as the only supported plugin config filenames after the rename.
+- Existing users must rename old slim-named config files manually; do not add runtime fallback logic for `oh-my-opencode-slim.json` / `.jsonc`.
 - Do not change unrelated internal architecture during the rename.
 
 ## Chunk 1: Package Identity, Compatibility, and Publish Prep
 
 ### Task 1: Verify the final npm publish target
+
+Implementation note:
+
+```md
+Chosen publish target: `oh-my-opencode-medium`
+Fallback needed: no
+Auth check status: `npm whoami` requires login on this machine; re-verify before publish.
+```
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-03-13-oh-my-opencode-medium.md`
@@ -174,7 +183,7 @@ git add package.json src/index.ts src/hooks/auto-update-checker/constants.ts src
 git commit -m "feat: rename published package to oh-my-opencode-medium"
 ```
 
-### Task 3: Add config filename compatibility for the renamed fork
+### Task 3: Switch config naming fully to the medium identity
 
 **Files:**
 - Modify: `src/cli/paths.ts`
@@ -185,13 +194,15 @@ git commit -m "feat: rename published package to oh-my-opencode-medium"
 - Test: `src/cli/config-io.test.ts`
 - Test: `src/cli/config-manager.test.ts`
 
-- [ ] **Step 1: Write failing tests for new preferred config filenames plus legacy fallback**
+- [ ] **Step 1: Write failing tests for medium-only config filenames and identifiers**
 
 Add or update tests so these behaviors are explicit:
 
 - preferred path becomes `~/.config/opencode/oh-my-opencode-medium.json`
 - `.jsonc` companion becomes `~/.config/opencode/oh-my-opencode-medium.jsonc`
-- if only `oh-my-opencode-slim.json` or `.jsonc` exists, loader still reads it
+- config loader and related helpers stop referring to slim-named config files,
+  prompt directories, and preset env names
+- slim-named config files are not auto-loaded anymore
 
 Example test shape in `src/cli/paths.test.ts`:
 
@@ -212,18 +223,17 @@ Run:
 bun test src/cli/paths.test.ts src/config/loader.test.ts src/cli/config-io.test.ts src/cli/config-manager.test.ts
 ```
 
-Expected: FAIL because code still prefers `oh-my-opencode-slim.json` paths.
+Expected: FAIL because code still refers to slim-named config files or identifiers.
 
-- [ ] **Step 3: Implement compatibility-aware path resolution**
+- [ ] **Step 3: Implement medium-only config naming**
 
 Implementation requirements:
 
 - `src/cli/paths.ts`
   - return new `oh-my-opencode-medium.*` paths from `getLiteConfig()` and `getLiteConfigJsonc()`
-  - update existing-path resolution to prefer new names first, then legacy slim names
+  - keep existing-path resolution aligned with the medium filename only
 - `src/config/loader.ts`
-  - search new config names first, then old names, without breaking existing users
-  - support `oh-my-opencode-medium` prompt/preset identifiers while preserving legacy `oh-my-opencode-slim` fallback behavior
+  - use `oh-my-opencode-medium` config, prompt, and preset identifiers consistently
 - `src/cli/config-io.ts`
   - print the new preferred filename in user-facing output
   - ensure written OpenCode plugin entries use the chosen package name rather than `oh-my-opencode-slim`
@@ -231,18 +241,19 @@ Implementation requirements:
 Suggested helper shape:
 
 ```ts
-const CURRENT_CONFIG_BASENAME = 'oh-my-opencode-medium';
-const LEGACY_CONFIG_BASENAME = 'oh-my-opencode-slim';
+const CONFIG_BASENAME = 'oh-my-opencode-medium';
 ```
 
-Suggested preset/env compatibility shape in `src/config/loader.ts`:
+Suggested preset/env naming shape in `src/config/loader.ts`:
 
 ```ts
-const CURRENT_PROMPTS_DIR_NAME = 'oh-my-opencode-medium';
-const LEGACY_PROMPTS_DIR_NAME = 'oh-my-opencode-slim';
-const CURRENT_PRESET_ENV = 'OH_MY_OPENCODE_MEDIUM_PRESET';
-const LEGACY_PRESET_ENV = 'OH_MY_OPENCODE_SLIM_PRESET';
+const PROMPTS_DIR_NAME = 'oh-my-opencode-medium';
+const PRESET_ENV = 'OH_MY_OPENCODE_MEDIUM_PRESET';
 ```
+
+Add an explicit negative test in `src/config/loader.test.ts` or
+`src/cli/config-manager.test.ts` showing that a standalone
+`oh-my-opencode-slim.json` / `.jsonc` file is ignored after the rename.
 
 - [ ] **Step 4: Re-run focused config-path tests**
 
@@ -258,7 +269,7 @@ Expected: PASS
 
 ```bash
 git add src/cli/paths.ts src/config/loader.ts src/cli/config-io.ts src/cli/paths.test.ts src/config/loader.test.ts src/cli/config-io.test.ts src/cli/config-manager.test.ts
-git commit -m "feat: support medium config filenames with slim fallback"
+git commit -m "feat: switch config naming to medium"
 ```
 
 ### Task 4: Update CLI help text and installer output
@@ -291,6 +302,7 @@ grep -R "oh-my-opencode-slim" src/cli src/index.ts src/hooks/auto-update-checker
 ```
 
 Expected: only intentional legacy-compatibility references remain; no stale help text or install command examples.
+Expected: no legacy compatibility references remain in runtime code; old slim-name mentions are allowed only for fork attribution or migration instructions.
 
 - [ ] **Step 3: Commit the CLI text updates**
 
@@ -333,7 +345,8 @@ Minimum content:
 - old package name: `oh-my-opencode-slim`
 - new package name: `oh-my-opencode-medium`
 - whether users should reinstall or update their OpenCode plugin entry
-- whether legacy config files are still read automatically
+- that legacy slim config files are no longer auto-read and users must rename the
+  existing file or recreate/regenerate config manually
 
 - [ ] **Step 3: Update install and config-path references across docs**
 
@@ -342,7 +355,7 @@ Make docs consistent with the implementation:
 - package install snippets use the chosen publish target
 - CLI command examples use `oh-my-opencode-medium`
 - preferred config filename examples use `oh-my-opencode-medium.json` / `.jsonc`
-- legacy fallback is only mentioned in migration/troubleshooting sections
+- old slim config filenames are mentioned only in migration instructions that tell users to rename them
 
 - [ ] **Step 4: Verify no stale user-facing references remain in docs**
 

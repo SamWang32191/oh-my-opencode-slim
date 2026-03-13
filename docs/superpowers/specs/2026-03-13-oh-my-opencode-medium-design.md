@@ -72,12 +72,15 @@ Even if the package is published with the scoped fallback,
 
 ### 3. Compatibility Strategy
 
-Behavioral compatibility with the current fork should be preserved where possible.
-Renaming should focus on package identity, installation commands, and documentation
-rather than changing the plugin's runtime behavior.
+Behavioral compatibility with the current fork should be preserved where possible,
+except for the config filename rename which should switch cleanly to the new medium
+name without a slim fallback.
 
-This keeps migration simple for early users and avoids mixing branding work with
-feature changes.
+Renaming should focus on package identity, installation commands, config naming, and
+documentation rather than broader runtime behavior changes.
+
+This keeps the rename focused while making the one intentional breaking change
+explicit: users with existing slim-named config files must rename them manually.
 
 ### 4. Repository Metadata
 
@@ -117,11 +120,18 @@ The migration note should cover:
 
 - the old package name and the new package name
 - whether users need to reinstall or update OpenCode/plugin configuration
+- that old `oh-my-opencode-slim.json` / `.jsonc` config files are not auto-read
+  after the rename
+- that users must rename existing config files to the medium filename or regenerate
+  them
 - where future releases will be published
 
 If the maintainer also controls any older npm package that should no longer be used,
 they may optionally publish a final deprecation notice that points users to the new
 package name.
+
+No runtime fallback should be added for legacy slim config filenames. The migration
+path is explicit documentation rather than backward-compatibility logic.
 
 ### 6. Versioning and Releases
 
@@ -215,6 +225,8 @@ Potentially affected references may also exist in:
 - `docs/installation.md`
 - `docs/quick-reference.md`
 - CLI or script text that prints install commands
+- config helpers and config loader logic that currently reference slim-named files,
+  prompt directories, or preset environment names
 
 ## Non-Goals
 
@@ -241,6 +253,12 @@ finalizing release instructions.
 Mitigation: only deprecate or redirect any older npm package if it is actually owned
 by the maintainer of this fork. Otherwise, rely on README and npm metadata to make
 the maintained package choice clear.
+
+### Existing users miss the config filename rename
+
+Mitigation: document the rename prominently in README and installation docs, and use
+the new medium filename consistently everywhere so users do not keep creating slim-
+named config files by mistake.
 
 ### User confusion about official ownership
 
