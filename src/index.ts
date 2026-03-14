@@ -27,7 +27,7 @@ import {
 import { startTmuxCheck } from './utils';
 import { log } from './utils/logger';
 
-const OhMyOpenCode: Plugin = async (ctx) => {
+const OhMyOpenCodeLite: Plugin = async (ctx) => {
   const config = loadPluginConfig(ctx.directory);
   const agentDefs = createAgents(config);
   const agents = getAgentConfigs(config);
@@ -313,7 +313,7 @@ const OhMyOpenCode: Plugin = async (ctx) => {
   };
 };
 
-export default OhMyOpenCode;
+export default OhMyOpenCodeLite;
 
 export type {
   AgentName,
