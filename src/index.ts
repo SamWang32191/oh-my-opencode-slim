@@ -94,7 +94,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   const jsonErrorRecoveryHook = createJsonErrorRecoveryHook(ctx);
 
   return {
-    name: 'oh-my-opencode-slim',
+    name: 'oh-my-opencode-medium',
 
     agent: agents,
 

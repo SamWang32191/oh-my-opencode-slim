@@ -4,7 +4,9 @@ import * as path from 'node:path';
 import { stripJsonComments } from '../cli/config-io';
 import { type PluginConfig, PluginConfigSchema } from './schema';
 
-const PROMPTS_DIR_NAME = 'oh-my-opencode-slim';
+const PROMPTS_DIR_NAME = 'oh-my-opencode-medium';
+const PRESET_ENV = 'OH_MY_OPENCODE_MEDIUM_PRESET';
+const LOG_PREFIX = '[oh-my-opencode-medium]';
 
 /**
  * Get the user's configuration directory following XDG Base Directory specification.
@@ -33,7 +35,7 @@ function loadConfigFromPath(configPath: string): PluginConfig | null {
     const result = PluginConfigSchema.safeParse(rawConfig);
 
     if (!result.success) {
-      console.warn(`[oh-my-opencode-slim] Invalid config at ${configPath}:`);
+      console.warn(`${LOG_PREFIX} Invalid config at ${configPath}:`);
       console.warn(result.error.format());
       return null;
     }
@@ -46,10 +48,7 @@ function loadConfigFromPath(configPath: string): PluginConfig | null {
       'code' in error &&
       (error as NodeJS.ErrnoException).code !== 'ENOENT'
     ) {
-      console.warn(
-        `[oh-my-opencode-slim] Error reading config from ${configPath}:`,
-        error.message,
-      );
+      console.warn(`${LOG_PREFIX} Error reading config from ${configPath}:`);
     }
     return null;
   }
@@ -59,7 +58,7 @@ function loadConfigFromPath(configPath: string): PluginConfig | null {
  * Find existing config file path, preferring .jsonc over .json.
  * Checks for .jsonc first, then falls back to .json.
  *
- * @param basePath - Base path without extension (e.g., /path/to/oh-my-opencode-slim)
+ * @param basePath - Base path without extension (e.g., /path/to/oh-my-opencode-medium)
  * @returns Path to existing config file, or null if neither exists
  */
 function findConfigPath(basePath: string): string | null {
@@ -119,8 +118,8 @@ function deepMerge<T extends Record<string, unknown>>(
  * Load plugin configuration from user and project config files, merging them appropriately.
  *
  * Configuration is loaded from two locations:
- * 1. User config: ~/.config/opencode/oh-my-opencode-slim.jsonc or .json (or $XDG_CONFIG_HOME)
- * 2. Project config: <directory>/.opencode/oh-my-opencode-slim.jsonc or .json
+ * 1. User config: ~/.config/opencode/oh-my-opencode-medium.jsonc or .json (or $XDG_CONFIG_HOME)
+ * 2. Project config: <directory>/.opencode/oh-my-opencode-medium.jsonc or .json
  *
  * JSONC format is preferred over JSON (allows comments and trailing commas).
  * Project config takes precedence over user config. Nested objects (agents, tmux) are
@@ -133,13 +132,13 @@ export function loadPluginConfig(directory: string): PluginConfig {
   const userConfigBasePath = path.join(
     getUserConfigDir(),
     'opencode',
-    'oh-my-opencode-slim',
+    PROMPTS_DIR_NAME,
   );
 
   const projectConfigBasePath = path.join(
     directory,
     '.opencode',
-    'oh-my-opencode-slim',
+    PROMPTS_DIR_NAME,
   );
 
   // Find existing config files (preferring .jsonc over .json)
@@ -164,7 +163,7 @@ export function loadPluginConfig(directory: string): PluginConfig {
   }
 
   // Override preset from environment variable if set
-  const envPreset = process.env.OH_MY_OPENCODE_SLIM_PRESET;
+  const envPreset = process.env[PRESET_ENV];
   if (envPreset) {
     config.preset = envPreset;
   }
@@ -183,7 +182,7 @@ export function loadPluginConfig(directory: string): PluginConfig {
         ? Object.keys(config.presets).join(', ')
         : 'none';
       console.warn(
-        `[oh-my-opencode-slim] Preset "${config.preset}" not found (from ${presetSource}). Available presets: ${availablePresets}`,
+        `${LOG_PREFIX} Preset "${config.preset}" not found (from ${presetSource}). Available presets: ${availablePresets}`,
       );
     }
   }
@@ -232,11 +231,8 @@ export function loadAgentPrompt(
 
       try {
         return fs.readFileSync(promptPath, 'utf-8');
-      } catch (error) {
-        console.warn(
-          `[oh-my-opencode-slim] ${errorPrefix} ${promptPath}:`,
-          error instanceof Error ? error.message : String(error),
-        );
+      } catch (_error) {
+        console.warn(`${LOG_PREFIX} ${errorPrefix} ${promptPath}:`);
       }
     }
 

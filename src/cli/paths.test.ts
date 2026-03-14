@@ -10,7 +10,9 @@ import {
   getConfigJson,
   getConfigJsonc,
   getExistingConfigPath,
+  getExistingLiteConfigPath,
   getLiteConfig,
+  getLiteConfigJsonc,
   getOpenCodeConfigPaths,
 } from './paths';
 
@@ -50,11 +52,70 @@ describe('paths', () => {
     expect(getConfigJsonc()).toBe('/tmp/xdg-config/opencode/opencode.jsonc');
   });
 
-  test('getLiteConfig() returns correct path', () => {
+  test('getLiteConfig() returns medium config path', () => {
     process.env.XDG_CONFIG_HOME = '/tmp/xdg-config';
     expect(getLiteConfig()).toBe(
-      '/tmp/xdg-config/opencode/oh-my-opencode-slim.json',
+      '/tmp/xdg-config/opencode/oh-my-opencode-medium.json',
     );
+  });
+
+  test('getLiteConfigJsonc() returns medium config jsonc path', () => {
+    process.env.XDG_CONFIG_HOME = '/tmp/xdg-config';
+    expect(getLiteConfigJsonc()).toBe(
+      '/tmp/xdg-config/opencode/oh-my-opencode-medium.jsonc',
+    );
+  });
+
+  test("getExistingLiteConfigPath() returns medium config path and doesn't check slim", () => {
+    // This test verifies medium-only behavior - slim files are ignored
+    process.env.XDG_CONFIG_HOME = '/tmp/xdg-config';
+    // Note: We don't create any config files, so it returns the default medium json path
+    expect(getExistingLiteConfigPath()).toBe(
+      '/tmp/xdg-config/opencode/oh-my-opencode-medium.json',
+    );
+  });
+
+  test('getExistingLiteConfigPath() returns existing medium .jsonc when present', () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'opencode-test-'));
+    process.env.XDG_CONFIG_HOME = tmpDir;
+    const configDir = join(tmpDir, 'opencode');
+    ensureConfigDir();
+    const jsoncPath = join(configDir, 'oh-my-opencode-medium.jsonc');
+    writeFileSync(jsoncPath, '{}');
+
+    expect(getExistingLiteConfigPath()).toBe(jsoncPath);
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('getExistingLiteConfigPath() returns existing medium .json when present', () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'opencode-test-'));
+    process.env.XDG_CONFIG_HOME = tmpDir;
+    const configDir = join(tmpDir, 'opencode');
+    ensureConfigDir();
+    const jsonPath = join(configDir, 'oh-my-opencode-medium.json');
+    writeFileSync(jsonPath, '{}');
+
+    expect(getExistingLiteConfigPath()).toBe(jsonPath);
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('getExistingLiteConfigPath() ignores slim config files', () => {
+    // This test verifies that slim config files are NOT loaded
+    const tmpDir = mkdtempSync(join(tmpdir(), 'opencode-test-'));
+    process.env.XDG_CONFIG_HOME = tmpDir;
+    const configDir = join(tmpDir, 'opencode');
+    ensureConfigDir();
+
+    // Create a slim config file - it should be ignored
+    const slimPath = join(configDir, 'oh-my-opencode-slim.json');
+    writeFileSync(slimPath, '{"slim": true}');
+
+    // Should still return medium path, not the slim path
+    expect(getExistingLiteConfigPath()).toBe(
+      join(configDir, 'oh-my-opencode-medium.json'),
+    );
+
+    rmSync(tmpDir, { recursive: true, force: true });
   });
 
   describe('getExistingConfigPath()', () => {

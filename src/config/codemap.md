@@ -15,9 +15,9 @@ The `src/config/` module is responsible for:
 ### Key Patterns
 
 **Multi-Source Configuration Merging**
-- User config: `~/.config/opencode/oh-my-opencode-slim.json` (or `$XDG_CONFIG_HOME`)
-- Project config: `<directory>/.opencode/oh-my-opencode-slim.json`
-- Environment override: `OH_MY_OPENCODE_SLIM_PRESET`
+- User config: `~/.config/opencode/oh-my-opencode-medium.json` (or `$XDG_CONFIG_HOME`)
+- Project config: `<directory>/.opencode/oh-my-opencode-medium.json`
+- Environment override: `OH_MY_OPENCODE_MEDIUM_PRESET`
 - Project config takes precedence over user config
 - Nested objects (agents, tmux) are deep-merged; arrays are replaced
 
@@ -92,11 +92,11 @@ TmuxConfig
 ```
 loadPluginConfig(directory)
 │
-├─→ Load user config from ~/.config/opencode/oh-my-opencode-slim.json
+├─→ Load user config from ~/.config/opencode/oh-my-opencode-medium.json
 │   └─→ Validate with PluginConfigSchema
 │       └─→ Return null if invalid/missing
 │
-├─→ Load project config from <directory>/.opencode/oh-my-opencode-slim.json
+├─→ Load project config from <directory>/.opencode/oh-my-opencode-medium.json
 │   └─→ Validate with PluginConfigSchema
 │       └─→ Return null if invalid/missing
 │
@@ -104,7 +104,7 @@ loadPluginConfig(directory)
 │   ├─→ Top-level: project replaces user
 │   └─→ Nested (agents, tmux): deep merge
 │
-├─→ Apply environment preset override (OH_MY_OPENCODE_SLIM_PRESET)
+├─→ Apply environment preset override (OH_MY_OPENCODE_MEDIUM_PRESET)
 │
 └─→ Resolve and merge preset
     ├─→ Find preset in config.presets[preset]
@@ -119,10 +119,10 @@ loadAgentPrompt(agentName, preset?)
 │
 ├─→ Build prompt search dirs
 │   ├─→ If preset is safe (`[a-zA-Z0-9_-]+`):
-│   │   1) ~/.config/opencode/oh-my-opencode-slim/{preset}
-│   │   2) ~/.config/opencode/oh-my-opencode-slim
+│   │   1) ~/.config/opencode/oh-my-opencode-medium/{preset}
+│   │   2) ~/.config/opencode/oh-my-opencode-medium
 │   └─→ Otherwise:
-│       1) ~/.config/opencode/oh-my-opencode-slim
+│       1) ~/.config/opencode/oh-my-opencode-medium
 │
 ├─→ Read first existing {agentName}.md from search dirs
 │   └─→ If found → replacement prompt

@@ -20,7 +20,8 @@ import type {
   OpenCodeConfig,
 } from './types';
 
-const PACKAGE_NAME = 'oh-my-opencode-slim';
+const PACKAGE_NAME = 'oh-my-opencode-medium';
+const LEGACY_PACKAGE_NAME = 'oh-my-opencode-slim';
 
 /**
  * Strip JSON comments (single-line // and multi-line) and trailing commas for JSONC support.
@@ -117,9 +118,13 @@ export async function addPluginToOpenCodeConfig(): Promise<ConfigMergeResult> {
     const config = parsedConfig ?? {};
     const plugins = config.plugin ?? [];
 
-    // Remove existing oh-my-opencode-slim entries
+    // Remove existing oh-my-opencode-medium entries and legacy oh-my-opencode-slim entries
     const filteredPlugins = plugins.filter(
-      (p) => p !== PACKAGE_NAME && !p.startsWith(`${PACKAGE_NAME}@`),
+      (p) =>
+        p !== PACKAGE_NAME &&
+        !p.startsWith(`${PACKAGE_NAME}@`) &&
+        p !== LEGACY_PACKAGE_NAME &&
+        !p.startsWith(`${LEGACY_PACKAGE_NAME}@`),
     );
 
     // Add fresh entry

@@ -2,6 +2,8 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
+const CONFIG_BASENAME = 'oh-my-opencode-medium';
+
 export function getConfigDir(): string {
   // Keep this aligned with OpenCode itself and the plugin config loader:
   // base dir is $XDG_CONFIG_HOME (if set) else ~/.config, and OpenCode config lives under /opencode.
@@ -26,11 +28,11 @@ export function getConfigJsonc(): string {
 }
 
 export function getLiteConfig(): string {
-  return join(getConfigDir(), 'oh-my-opencode-slim.json');
+  return join(getConfigDir(), `${CONFIG_BASENAME}.json`);
 }
 
 export function getLiteConfigJsonc(): string {
-  return join(getConfigDir(), 'oh-my-opencode-slim.jsonc');
+  return join(getConfigDir(), `${CONFIG_BASENAME}.jsonc`);
 }
 
 export function getExistingLiteConfigPath(): string {

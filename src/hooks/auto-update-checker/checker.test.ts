@@ -2,20 +2,29 @@ import { describe, expect, mock, test } from 'bun:test';
 import * as fs from 'node:fs';
 import { extractChannel, findPluginEntry, getLocalDevVersion } from './checker';
 
-// Mock the dependencies
+// Mock the constants with new package name for functional tests
 mock.module('./constants', () => ({
-  PACKAGE_NAME: 'oh-my-opencode-slim',
+  PACKAGE_NAME: 'oh-my-opencode-medium',
   USER_OPENCODE_CONFIG: '/mock/config/opencode.json',
   USER_OPENCODE_CONFIG_JSONC: '/mock/config/opencode.jsonc',
   INSTALLED_PACKAGE_JSON:
-    '/mock/cache/node_modules/oh-my-opencode-slim/package.json',
+    '/mock/cache/node_modules/oh-my-opencode-medium/package.json',
 }));
 
+// Mock fs for tests that need it
 mock.module('node:fs', () => ({
   existsSync: mock((_p: string) => false),
-  readFileSync: mock((_p: string) => ''),
+  readFileSync: mock(() => ''),
   statSync: mock((_p: string) => ({ isDirectory: () => true })),
   writeFileSync: mock(() => {}),
+}));
+
+mock.module('../../cli/config-manager', () => ({
+  getOpenCodeConfigPaths: () => [
+    '/mock/config/opencode.json',
+    '/mock/config/opencode.jsonc',
+  ],
+  stripJsonComments: (s: string) => s,
 }));
 
 describe('auto-update-checker/checker', () => {
@@ -61,12 +70,12 @@ describe('auto-update-checker/checker', () => {
       readMock.mockImplementation((p: string) => {
         if (p.includes('opencode.json')) {
           return JSON.stringify({
-            plugin: ['file:///dev/oh-my-opencode-slim'],
+            plugin: ['file:///dev/oh-my-opencode-medium'],
           });
         }
         if (p.includes('package.json')) {
           return JSON.stringify({
-            name: 'oh-my-opencode-slim',
+            name: 'oh-my-opencode-medium',
             version: '1.2.3-dev',
           });
         }
@@ -85,13 +94,13 @@ describe('auto-update-checker/checker', () => {
       existsMock.mockImplementation((p: string) => p.includes('opencode.json'));
       readMock.mockImplementation(() =>
         JSON.stringify({
-          plugin: ['oh-my-opencode-slim'],
+          plugin: ['oh-my-opencode-medium'],
         }),
       );
 
       const entry = findPluginEntry('/test');
       expect(entry).not.toBeNull();
-      expect(entry?.entry).toBe('oh-my-opencode-slim');
+      expect(entry?.entry).toBe('oh-my-opencode-medium');
       expect(entry?.isPinned).toBe(false);
       expect(entry?.pinnedVersion).toBeNull();
     });
@@ -103,7 +112,7 @@ describe('auto-update-checker/checker', () => {
       existsMock.mockImplementation((p: string) => p.includes('opencode.json'));
       readMock.mockImplementation(() =>
         JSON.stringify({
-          plugin: ['oh-my-opencode-slim@1.0.0'],
+          plugin: ['oh-my-opencode-medium@1.0.0'],
         }),
       );
 

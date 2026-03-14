@@ -53,8 +53,11 @@ Implementation note:
 ```md
 Chosen publish target: `oh-my-opencode-medium`
 Fallback needed: no
-Auth check status: `npm whoami` requires login on this machine; re-verify before publish.
+Auth check status: `npm whoami` returned `w32191`
+Availability check `npm view oh-my-opencode-medium version`: 404/not found (available)
+Availability check `npm view @w32191/oh-my-opencode-medium version`: 404/not found (available)
 ```
+
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-03-13-oh-my-opencode-medium.md`

@@ -64,7 +64,7 @@ export async function downloadAstGrep(
 
   if (!platformInfo) {
     console.error(
-      `[oh-my-opencode-slim] Unsupported platform for ast-grep: ${platformKey}`,
+      `[oh-my-opencode-medium] Unsupported platform for ast-grep: ${platformKey}`,
     );
     return null;
   }
@@ -81,7 +81,7 @@ export async function downloadAstGrep(
   const assetName = `app-${arch}-${os}.zip`;
   const downloadUrl = `https://github.com/${REPO}/releases/download/${version}/${assetName}`;
 
-  console.log(`[oh-my-opencode-slim] Downloading ast-grep binary...`);
+  console.log(`[oh-my-opencode-medium] Downloading ast-grep binary...`);
 
   try {
     if (!existsSync(cacheDir)) {
@@ -108,12 +108,12 @@ export async function downloadAstGrep(
       chmodSync(binaryPath, 0o755);
     }
 
-    console.log(`[oh-my-opencode-slim] ast-grep binary ready.`);
+    console.log(`[oh-my-opencode-medium] ast-grep binary ready.`);
 
     return binaryPath;
   } catch (err) {
     console.error(
-      `[oh-my-opencode-slim] Failed to download ast-grep: ${err instanceof Error ? err.message : err}`,
+      `[oh-my-opencode-medium] Failed to download ast-grep: ${err instanceof Error ? err.message : err}`,
     );
     return null;
   }

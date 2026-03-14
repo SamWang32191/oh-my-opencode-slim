@@ -130,7 +130,7 @@ export async function downloadAndInstallRipgrep(): Promise<string> {
   const archivePath = join(installDir, filename);
 
   try {
-    console.log(`[oh-my-opencode-slim] Downloading ripgrep...`);
+    console.log(`[oh-my-opencode-medium] Downloading ripgrep...`);
     await downloadFile(url, archivePath);
 
     if (config.extension === 'tar.gz') {
@@ -147,7 +147,7 @@ export async function downloadAndInstallRipgrep(): Promise<string> {
       throw new Error('ripgrep binary not found after extraction');
     }
 
-    console.log(`[oh-my-opencode-slim] ripgrep ready.`);
+    console.log(`[oh-my-opencode-medium] ripgrep ready.`);
     return rgPath;
   } finally {
     if (existsSync(archivePath)) {
