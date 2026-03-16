@@ -145,24 +145,25 @@ describe('config-io', () => {
     expect(saved.plugin.length).toBe(2);
   });
 
-  test('writeLiteConfig writes lite config', () => {
+  test('writeLiteConfig writes lite config with OpenAI preset', () => {
     const litePath = join(tmpDir, 'opencode', 'oh-my-opencode-medium.json');
     paths.ensureConfigDir();
 
     const result = writeLiteConfig({
-      hasKimi: true,
-      hasOpenAI: false,
+      hasKimi: false,
+      hasOpenAI: true,
       hasAntigravity: false,
       hasOpencodeZen: false,
       hasTmux: true,
       installSkills: false,
       installCustomSkills: false,
+      setupMode: 'quick',
     });
     expect(result.success).toBe(true);
 
     const saved = JSON.parse(readFileSync(litePath, 'utf-8'));
-    expect(saved.preset).toBe('kimi');
-    expect(saved.presets.kimi).toBeDefined();
+    expect(saved.preset).toBe('openai');
+    expect(saved.presets.openai).toBeDefined();
     expect(saved.tmux.enabled).toBe(true);
   });
 
