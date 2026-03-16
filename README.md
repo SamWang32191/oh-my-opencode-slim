@@ -53,7 +53,7 @@ An official JSON Schema is included in the package for editor validation and aut
 
 ```jsonc
 {
-  "$schema": "https://unpkg.com/oh-my-opencode-medium@latest/oh-my-opencode-slim.schema.json",
+  "$schema": "https://unpkg.com/oh-my-opencode-medium@latest/oh-my-opencode-medium.schema.json",
   // your config...
 }
 ```
