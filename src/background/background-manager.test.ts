@@ -497,7 +497,7 @@ describe('BackgroundTaskManager', () => {
           const modelRef = args.body?.model;
           if (
             modelRef?.providerID === 'openai' &&
-            modelRef?.modelID === 'gpt-5.2-codex'
+            modelRef?.modelID === 'gpt-5.4'
           ) {
             throw new Error('primary failed');
           }
@@ -509,8 +509,9 @@ describe('BackgroundTaskManager', () => {
         fallback: {
           enabled: true,
           timeoutMs: 15000,
+          retryDelayMs: 0,
           chains: {
-            explorer: ['openai/gpt-5.2-codex', 'opencode/gpt-5-nano'],
+            explorer: ['openai/gpt-5.4', 'opencode/gpt-5-nano'],
           },
         },
       });
@@ -522,12 +523,14 @@ describe('BackgroundTaskManager', () => {
         parentSessionId: 'parent-123',
       });
 
-      await Promise.resolve();
-      await Promise.resolve();
+      // Yield to let the fire-and-forget async chain complete
+      // (retryDelayMs: 0 eliminates the inter-attempt delay)
       await new Promise((r) => setTimeout(r, 10));
 
       expect(task.status).toBe('running');
       expect(promptCalls).toBe(2);
+      // Verify session.abort was called between attempts
+      expect(ctx.client.session.abort).toHaveBeenCalled();
     });
 
     test('fails task when all fallback models fail', async () => {
@@ -546,8 +549,9 @@ describe('BackgroundTaskManager', () => {
         fallback: {
           enabled: true,
           timeoutMs: 15000,
+          retryDelayMs: 0,
           chains: {
-            explorer: ['openai/gpt-5.2-codex', 'opencode/gpt-5-nano'],
+            explorer: ['openai/gpt-5.4', 'opencode/gpt-5-nano'],
           },
         },
       });
@@ -559,12 +563,14 @@ describe('BackgroundTaskManager', () => {
         parentSessionId: 'parent-123',
       });
 
-      await Promise.resolve();
-      await Promise.resolve();
+      // Yield to let the fire-and-forget async chain complete
+      // (retryDelayMs: 0 eliminates the inter-attempt delay)
       await new Promise((r) => setTimeout(r, 10));
 
       expect(task.status).toBe('failed');
       expect(task.error).toContain('All fallback models failed');
+      // Verify session.abort was called: once between attempts + once in completeTask
+      expect(ctx.client.session.abort).toHaveBeenCalledTimes(2);
     });
 
     test('extracts content from multiple types and messages', async () => {

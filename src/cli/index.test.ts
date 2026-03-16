@@ -23,6 +23,8 @@ describe('cli index', () => {
     expect(stdout).not.toContain('bunx oh-my-opencode-medium models');
     expect(stdout).not.toContain('--kimi=yes|no');
     expect(stdout).not.toContain('--openai=yes|no');
-    expect(stdout).toContain('The installer generates an OpenAI configuration by default.');
+    expect(stdout).toContain(
+      'The installer generates an OpenAI configuration by default.',
+    );
   });
 });

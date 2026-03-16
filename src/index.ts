@@ -113,17 +113,39 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
     config: async (opencodeConfig: Record<string, unknown>) => {
       const loadedSkills = await discoverAllSkills(ctx.directory);
-
-      (opencodeConfig as { default_agent?: string }).default_agent =
-        'orchestrator';
+      // Only set default_agent if not already configured by the user
+      // and the plugin config doesn't explicitly disable this behavior
+      if (
+        config.setDefaultAgent !== false &&
+        !(opencodeConfig as { default_agent?: string }).default_agent
+      ) {
+        (opencodeConfig as { default_agent?: string }).default_agent =
+          'orchestrator';
+      }
 
       mergeSkillCommands(opencodeConfig, loadedSkills);
 
-      // Merge Agent configs
+      // Merge Agent configs — per-agent shallow merge to preserve
+      // user-supplied fields (e.g. tools, permission) from opencode.json
       if (!opencodeConfig.agent) {
         opencodeConfig.agent = { ...agents };
       } else {
-        Object.assign(opencodeConfig.agent, agents);
+        for (const [name, pluginAgent] of Object.entries(agents)) {
+          const existing = (opencodeConfig.agent as Record<string, unknown>)[
+            name
+          ] as Record<string, unknown> | undefined;
+          if (existing) {
+            // Shallow merge: plugin defaults first, user overrides win
+            (opencodeConfig.agent as Record<string, unknown>)[name] = {
+              ...pluginAgent,
+              ...existing,
+            };
+          } else {
+            (opencodeConfig.agent as Record<string, unknown>)[name] = {
+              ...pluginAgent,
+            };
+          }
+        }
       }
       const configAgent = opencodeConfig.agent as Record<string, unknown>;
 
@@ -135,38 +157,56 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       if (Object.keys(modelArrayMap).length > 0) {
         const providerConfig =
           (opencodeConfig.provider as Record<string, unknown>) ?? {};
-        const configuredProviders = Object.keys(providerConfig);
+        const hasProviderConfig = Object.keys(providerConfig).length > 0;
 
         for (const [agentName, modelArray] of Object.entries(modelArrayMap)) {
           let resolved = false;
-          for (const modelEntry of modelArray) {
-            const slashIdx = modelEntry.id.indexOf('/');
-            if (slashIdx === -1) continue;
-            const providerID = modelEntry.id.slice(0, slashIdx);
-            if (configuredProviders.includes(providerID)) {
-              const entry = configAgent[agentName] as
-                | Record<string, unknown>
-                | undefined;
-              if (entry) {
-                entry.model = modelEntry.id;
-                if (modelEntry.variant) {
-                  entry.variant = modelEntry.variant;
+
+          if (hasProviderConfig) {
+            const configuredProviders = Object.keys(providerConfig);
+            for (const modelEntry of modelArray) {
+              const slashIdx = modelEntry.id.indexOf('/');
+              if (slashIdx === -1) continue;
+              const providerID = modelEntry.id.slice(0, slashIdx);
+              if (configuredProviders.includes(providerID)) {
+                const entry = configAgent[agentName] as
+                  | Record<string, unknown>
+                  | undefined;
+                if (entry) {
+                  entry.model = modelEntry.id;
+                  if (modelEntry.variant) {
+                    entry.variant = modelEntry.variant;
+                  }
                 }
+                log('[plugin] resolved model fallback', {
+                  agent: agentName,
+                  model: modelEntry.id,
+                  variant: modelEntry.variant,
+                });
+                resolved = true;
+                break;
               }
-              log('[plugin] resolved model fallback', {
-                agent: agentName,
-                model: modelEntry.id,
-                variant: modelEntry.variant,
-              });
-              resolved = true;
-              break;
             }
           }
-          // If no provider matched, leave model unset so OpenCode
-          // uses the UI-selected model (fixes #138).
+
+          // If no provider config or no provider matched, use the first model
+          // in the array. This ensures model arrays work even without explicit
+          // provider configuration.
           if (!resolved) {
-            log('[plugin] no provider match for model array', {
+            const firstModel = modelArray[0];
+            const entry = configAgent[agentName] as
+              | Record<string, unknown>
+              | undefined;
+            if (entry) {
+              entry.model = firstModel.id;
+              if (firstModel.variant) {
+                entry.variant = firstModel.variant;
+              }
+            }
+            log('[plugin] resolved model from array (no provider config)', {
               agent: agentName,
+              model: firstModel.id,
+              variant: firstModel.variant,
             });
           }
         }
