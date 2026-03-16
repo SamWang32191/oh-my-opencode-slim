@@ -8,7 +8,7 @@
  *
  * Uses experimental.chat.messages.transform so it doesn't show in UI.
  */
-import { SLIM_INTERNAL_INITIATOR_MARKER } from '../../utils';
+import { MEDIUM_INTERNAL_INITIATOR_MARKER } from '../../utils';
 
 export const PHASE_REMINDER = `<reminder>Recall Workflow Rules:
 Understand → find the best path (delegate based on rules and parallelize independent work) → execute → verify.
@@ -79,7 +79,7 @@ export function createPhaseReminderHook() {
       }
 
       const originalText = lastUserMessage.parts[textPartIndex].text ?? '';
-      if (originalText.includes(SLIM_INTERNAL_INITIATOR_MARKER)) {
+      if (originalText.includes(MEDIUM_INTERNAL_INITIATOR_MARKER)) {
         return;
       }
 

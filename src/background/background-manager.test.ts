@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { SLIM_INTERNAL_INITIATOR_MARKER } from '../utils';
+import { MEDIUM_INTERNAL_INITIATOR_MARKER } from '../utils';
 import { BackgroundTaskManager } from './background-manager';
 
 // Mock the plugin context
@@ -716,7 +716,7 @@ describe('BackgroundTaskManager', () => {
       const notificationCall = promptCalls[promptCalls.length - 1];
       expect(
         notificationCall[0].body?.parts?.[0]?.text?.includes(
-          SLIM_INTERNAL_INITIATOR_MARKER,
+          MEDIUM_INTERNAL_INITIATOR_MARKER,
         ),
       ).toBe(true);
     });

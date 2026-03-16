@@ -46,7 +46,7 @@ function getPlatformKey(): string {
 
 function getInstallDir(): string {
   const homeDir = process.env.HOME || process.env.USERPROFILE || '.';
-  return join(homeDir, '.cache', 'oh-my-opencode-slim', 'bin');
+  return join(homeDir, '.cache', 'oh-my-opencode-medium', 'bin');
 }
 
 function getRgPath(): string {

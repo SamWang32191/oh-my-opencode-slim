@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { SLIM_INTERNAL_INITIATOR_MARKER } from '../../utils';
+import { MEDIUM_INTERNAL_INITIATOR_MARKER } from '../../utils';
 import { createPhaseReminderHook, PHASE_REMINDER } from './index';
 
 describe('createPhaseReminderHook', () => {
@@ -46,7 +46,7 @@ describe('createPhaseReminderHook', () => {
           parts: [
             {
               type: 'text',
-              text: `[Background task "x" completed]\n${SLIM_INTERNAL_INITIATOR_MARKER}`,
+              text: `[Background task "x" completed]\n${MEDIUM_INTERNAL_INITIATOR_MARKER}`,
             },
           ],
         },
@@ -56,7 +56,7 @@ describe('createPhaseReminderHook', () => {
     await hook['experimental.chat.messages.transform']({}, output);
 
     expect(output.messages[0].parts[0].text).toContain(
-      SLIM_INTERNAL_INITIATOR_MARKER,
+      MEDIUM_INTERNAL_INITIATOR_MARKER,
     );
     expect(output.messages[0].parts[0].text).not.toContain(PHASE_REMINDER);
   });
