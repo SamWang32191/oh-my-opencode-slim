@@ -32,7 +32,7 @@ The installer no longer auto-reads old slim config files—manual renaming is re
 ### Quick Start
 
 ```bash
-bunx oh-my-opencode-medium@latest install
+bunx oh-my-opencode-medium@medium install
 ```
 
 The installer generates an OpenAI configuration by default (using `gpt-5.4` and `gpt-5-codex`). No provider questions asked.
@@ -40,7 +40,7 @@ The installer generates an OpenAI configuration by default (using `gpt-5.4` and 
 For non-interactive mode:
 
 ```bash
-bunx oh-my-opencode-medium@latest install --no-tui --tmux=no --skills=yes
+bunx oh-my-opencode-medium@medium install --no-tui --tmux=no --skills=yes
 ```
 
 ### For Alternative Providers
@@ -53,7 +53,7 @@ An official JSON Schema is included in the package for editor validation and aut
 
 ```jsonc
 {
-  "$schema": "https://unpkg.com/oh-my-opencode-medium@latest/oh-my-opencode-medium.schema.json",
+  "$schema": "https://unpkg.com/oh-my-opencode-medium@medium/oh-my-opencode-medium.schema.json",
   // your config...
 }
 ```

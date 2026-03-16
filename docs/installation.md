@@ -18,13 +18,13 @@ Complete installation instructions for oh-my-opencode-medium.
 Run the interactive installer:
 
 ```bash
-bunx oh-my-opencode-medium@latest install
+bunx oh-my-opencode-medium@medium install
 ```
 
 Or use non-interactive mode:
 
 ```bash
-bunx oh-my-opencode-medium@latest install --no-tui --kimi=yes --openai=yes --antigravity=yes --chutes=yes --opencode-free=yes --opencode-free-model=auto --tmux=no --skills=yes
+bunx oh-my-opencode-medium@medium install --no-tui --kimi=yes --openai=yes --antigravity=yes --chutes=yes --opencode-free=yes --opencode-free-model=auto --tmux=no --skills=yes
 ```
 
 ### Provider Options
@@ -116,22 +116,22 @@ Help the user understand the tradeoffs:
 Based on answers, run:
 
 ```bash
-bunx oh-my-opencode-medium@latest install --no-tui --kimi=<yes|no> --openai=<yes|no> --antigravity=<yes|no> --chutes=<yes|no> --opencode-free=<yes|no> --opencode-free-model=<id|auto> --tmux=<yes|no> --skills=<yes|no>
+bunx oh-my-opencode-medium@medium install --no-tui --kimi=<yes|no> --openai=<yes|no> --antigravity=<yes|no> --chutes=<yes|no> --opencode-free=<yes|no> --opencode-free-model=<id|auto> --tmux=<yes|no> --skills=<yes|no>
 ```
 
 **Examples:**
 ```bash
 # Kimi + OpenAI + Antigravity
-bunx oh-my-opencode-medium@latest install --no-tui --kimi=yes --openai=yes --antigravity=yes --chutes=yes --opencode-free=yes --opencode-free-model=auto --tmux=no --skills=yes
+bunx oh-my-opencode-medium@medium install --no-tui --kimi=yes --openai=yes --antigravity=yes --chutes=yes --opencode-free=yes --opencode-free-model=auto --tmux=no --skills=yes
 
 # OpenAI only
-bunx oh-my-opencode-medium@latest install --no-tui --kimi=no --openai=yes --antigravity=no --chutes=no --opencode-free=no --tmux=no --skills=yes
+bunx oh-my-opencode-medium@medium install --no-tui --kimi=no --openai=yes --antigravity=no --chutes=no --opencode-free=no --tmux=no --skills=yes
 
 # OpenCode free models only (auto-select)
-bunx oh-my-opencode-medium@latest install --no-tui --kimi=no --openai=no --antigravity=no --chutes=no --opencode-free=yes --opencode-free-model=auto --tmux=no --skills=yes
+bunx oh-my-opencode-medium@medium install --no-tui --kimi=no --openai=no --antigravity=no --chutes=no --opencode-free=yes --opencode-free-model=auto --tmux=no --skills=yes
 
 # OpenCode free models + OpenAI (manual primary model)
-bunx oh-my-opencode-medium@latest install --no-tui --kimi=no --openai=yes --antigravity=no --chutes=no --opencode-free=yes --opencode-free-model=opencode/gpt-5-nano --tmux=no --skills=yes
+bunx oh-my-opencode-medium@medium install --no-tui --kimi=no --openai=yes --antigravity=no --chutes=no --opencode-free=yes --opencode-free-model=opencode/gpt-5-nano --tmux=no --skills=yes
 ```
 
 The installer automatically:
@@ -177,7 +177,7 @@ opencode auth login
 
 Check the expected config format:
 ```bash
-bunx oh-my-opencode-medium@latest install --help
+bunx oh-my-opencode-medium@medium install --help
 ```
 
 Then manually create the config files at:

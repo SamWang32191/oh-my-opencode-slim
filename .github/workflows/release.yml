@@ -85,4 +85,4 @@ jobs:
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ""
-        run: npm publish --provenance --access public --registry=https://registry.npmjs.org/
+        run: npm publish --provenance --access public --tag medium --registry=https://registry.npmjs.org/
