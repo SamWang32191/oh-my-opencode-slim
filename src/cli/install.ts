@@ -230,7 +230,7 @@ async function runInstall(config: InstallConfig): Promise<number> {
     `${BOLD}For alternative providers (Kimi, GitHub Copilot, ZAI Coding Plan), see:${RESET}`,
   );
   console.log(
-    `  ${BLUE}https://github.com/SamWang32191/oh-my-opencode-slim/blob/main/docs/provider-configurations.md${RESET}`,
+    `  ${BLUE}https://github.com/SamWang32191/oh-my-opencode-medium/blob/main/docs/provider-configurations.md${RESET}`,
   );
   console.log();
 

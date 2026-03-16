@@ -7,7 +7,7 @@
 
 ---
 
-> **Forked from [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim)** and independently maintained by **`SamWang32191`**. Issues for this fork should be filed at [`SamWang32191/oh-my-opencode-slim`](https://github.com/SamWang32191/oh-my-opencode-slim/issues).
+> **Forked from [`alvinunreal/oh-my-opencode-slim`](https://github.com/alvinunreal/oh-my-opencode-slim)** and independently maintained by **`SamWang32191`**. Issues for this fork should be filed at [`SamWang32191/oh-my-opencode-medium`](https://github.com/SamWang32191/oh-my-opencode-medium/issues).
 
 ---
 
@@ -66,7 +66,7 @@ Paste this into any coding agent:
 
 ```
 Install and configure by following the instructions here:
-https://raw.githubusercontent.com/SamWang32191/oh-my-opencode-slim/main/README.md
+https://raw.githubusercontent.com/SamWang32191/oh-my-opencode-medium/main/README.md
 ```
 
 **Detailed installation guide:** [docs/installation.md](docs/installation.md)

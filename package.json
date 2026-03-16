@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "oh-my-opencode-medium": "./dist/cli/index.js"
+    "oh-my-opencode-medium": "dist/cli/index.js"
   },
   "type": "module",
   "license": "MIT",
@@ -22,12 +22,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/SamWang32191/oh-my-opencode-slim"
+    "url": "git+https://github.com/SamWang32191/oh-my-opencode-medium.git"
   },
   "bugs": {
-    "url": "https://github.com/SamWang32191/oh-my-opencode-slim/issues"
+    "url": "https://github.com/SamWang32191/oh-my-opencode-medium/issues"
   },
-  "homepage": "https://github.com/SamWang32191/oh-my-opencode-slim#readme",
+  "homepage": "https://github.com/SamWang32191/oh-my-opencode-medium#readme",
   "files": [
     "dist",
     "src/skills",

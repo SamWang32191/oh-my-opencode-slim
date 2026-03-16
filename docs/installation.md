@@ -69,7 +69,7 @@ Paste this into Claude Code, AmpCode, Cursor, or any coding agent:
 
 ```
 Install and configure by following the instructions here:
-https://raw.githubusercontent.com/SamWang32191/oh-my-opencode-slim/main/README.md
+https://raw.githubusercontent.com/SamWang32191/oh-my-opencode-medium/main/README.md
 ```
 
 ---
