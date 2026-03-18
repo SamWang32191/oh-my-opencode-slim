@@ -84,6 +84,69 @@ describe('auto-update-checker/checker', () => {
 
       expect(getLocalDevVersion('/test')).toBe('1.2.3-dev');
     });
+
+    test('returns version from local package.json for arbitrary file path entries', () => {
+      const existsMock = fs.existsSync as any;
+      const readMock = fs.readFileSync as any;
+
+      existsMock.mockImplementation((p: string) => {
+        if (p.includes('opencode.json')) return true;
+        if (p === '/dev/plugins/medium-local/package.json') return true;
+        return false;
+      });
+
+      readMock.mockImplementation((p: string) => {
+        if (p.includes('opencode.json')) {
+          return JSON.stringify({
+            plugin: ['file:///dev/plugins/medium-local'],
+          });
+        }
+        if (p === '/dev/plugins/medium-local/package.json') {
+          return JSON.stringify({
+            name: 'oh-my-opencode-medium',
+            version: '0.8.3-medium.6',
+          });
+        }
+        return '';
+      });
+
+      expect(getLocalDevVersion('/test')).toBe('0.8.3-medium.6');
+    });
+
+    test('ignores unrelated local plugins nested inside this repository', () => {
+      const existsMock = fs.existsSync as any;
+      const readMock = fs.readFileSync as any;
+
+      existsMock.mockImplementation((p: string) => {
+        if (p.includes('opencode.json')) return true;
+        if (p === '/repo/tools/other-plugin/package.json') return true;
+        if (p === '/repo/package.json') return true;
+        return false;
+      });
+
+      readMock.mockImplementation((p: string) => {
+        if (p.includes('opencode.json')) {
+          return JSON.stringify({
+            plugin: ['file:///repo/tools/other-plugin/dist'],
+          });
+        }
+        if (p === '/repo/tools/other-plugin/package.json') {
+          return JSON.stringify({
+            name: 'other-plugin',
+            version: '1.0.0',
+          });
+        }
+        if (p === '/repo/package.json') {
+          return JSON.stringify({
+            name: 'oh-my-opencode-medium',
+            version: '0.8.3-medium.6',
+          });
+        }
+        return '';
+      });
+
+      expect(getLocalDevVersion('/test')).toBeNull();
+    });
   });
 
   describe('findPluginEntry', () => {

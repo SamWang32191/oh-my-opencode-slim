@@ -9,7 +9,7 @@ import {
   getLocalDevVersion,
   updatePinnedVersion,
 } from './checker';
-import { PACKAGE_NAME } from './constants';
+import { CACHE_DIR, PACKAGE_NAME } from './constants';
 import type { AutoUpdateCheckerOptions } from './types';
 
 /**
@@ -153,7 +153,7 @@ async function runBackgroundUpdateCheck(
 
   invalidatePackage(PACKAGE_NAME);
 
-  const installSuccess = await runBunInstallSafe(ctx);
+  const installSuccess = await runBunInstallSafe(latestVersion);
 
   if (installSuccess) {
     showToast(
@@ -181,16 +181,25 @@ async function runBackgroundUpdateCheck(
 /**
  * Spawns a background process to run 'bun install'.
  * Includes a 60-second timeout to prevent stalling OpenCode.
- * @param ctx The plugin input context.
  * @returns True if the installation succeeded within the timeout.
  */
-async function runBunInstallSafe(ctx: PluginInput): Promise<boolean> {
+export function createAutoUpdateInstallSpec(version: string): {
+  cmd: string[];
+  cwd: string;
+  stdout: 'ignore';
+  stderr: 'ignore';
+} {
+  return {
+    cmd: ['bun', 'add', `${PACKAGE_NAME}@${version}`],
+    cwd: CACHE_DIR,
+    stdout: 'ignore',
+    stderr: 'ignore',
+  };
+}
+
+async function runBunInstallSafe(version: string): Promise<boolean> {
   try {
-    const proc = Bun.spawn(['bun', 'install'], {
-      cwd: ctx.directory,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    });
+    const proc = Bun.spawn(createAutoUpdateInstallSpec(version));
 
     const timeoutPromise = new Promise<'timeout'>((resolve) =>
       setTimeout(() => resolve('timeout'), 60_000),

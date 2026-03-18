@@ -67,9 +67,9 @@ function getConfigPaths(directory: string): string[] {
 }
 
 /**
- * Attempts to find a local development path (file://) for the plugin in configs.
+ * Attempts to find a local development package.json path for the plugin in configs.
  */
-function getLocalDevPath(directory: string): string | null {
+function getLocalDevPackageJsonPath(directory: string): string | null {
   for (const configPath of getConfigPaths(directory)) {
     try {
       if (!fs.existsSync(configPath)) continue;
@@ -78,12 +78,18 @@ function getLocalDevPath(directory: string): string | null {
       const plugins = config.plugin ?? [];
 
       for (const entry of plugins) {
-        if (entry.startsWith('file://') && entry.includes(PACKAGE_NAME)) {
-          try {
-            return fileURLToPath(entry);
-          } catch {
-            return entry.replace('file://', '');
-          }
+        if (!entry.startsWith('file://')) continue;
+
+        let localPath: string;
+        try {
+          localPath = fileURLToPath(entry);
+        } catch {
+          localPath = entry.replace('file://', '');
+        }
+
+        const pkgPath = findPackageJsonUp(localPath);
+        if (pkgPath) {
+          return pkgPath;
         }
       }
     } catch {}
@@ -106,8 +112,9 @@ function findPackageJsonUp(startPath: string): string | null {
           const content = fs.readFileSync(pkgPath, 'utf-8');
           const pkg = JSON.parse(content) as PackageJson;
           if (pkg.name === PACKAGE_NAME) return pkgPath;
+          return null;
         } catch {
-          /* empty */
+          return null;
         }
       }
       const parent = path.dirname(dir);
@@ -124,12 +131,10 @@ function findPackageJsonUp(startPath: string): string | null {
  * Resolves the version of the plugin when running in local development mode.
  */
 export function getLocalDevVersion(directory: string): string | null {
-  const localPath = getLocalDevPath(directory);
-  if (!localPath) return null;
+  const pkgPath = getLocalDevPackageJsonPath(directory);
+  if (!pkgPath) return null;
 
   try {
-    const pkgPath = findPackageJsonUp(localPath);
-    if (!pkgPath) return null;
     const content = fs.readFileSync(pkgPath, 'utf-8');
     const pkg = JSON.parse(content) as PackageJson;
     return pkg.version ?? null;
@@ -169,7 +174,6 @@ export function findPluginEntry(directory: string): PluginEntryInfo | null {
   return null;
 }
 
-const _cachedLocalVersion: string | null = null;
 let cachedPackageVersion: string | null = null;
 
 /**
