@@ -160,7 +160,10 @@ async function appendWriteHashlineOutput(output: {
   output: string;
   metadata: unknown;
 }): Promise<void> {
-  if (output.output.startsWith(WRITE_SUCCESS_MARKER)) {
+  if (
+    output.output.startsWith(`${WRITE_SUCCESS_MARKER} `) &&
+    output.output.includes(' lines written.')
+  ) {
     return;
   }
 

@@ -278,6 +278,47 @@ describe('hashline-edit-diff-enhancer', () => {
     });
   });
 
+  describe('failed write outputs', () => {
+    it('does not attach diff metadata for failed write output', async () => {
+      const hook = createHashlineEditDiffEnhancerHook({
+        hashline_edit: { enabled: true },
+      });
+
+      const beforeInput = {
+        tool: 'write',
+        sessionID: 'test-session',
+        callID: 'test-call-failed-write',
+      };
+      const beforeOutput = {
+        args: { path: testFilePath, content: 'new line 1\nnew line 2' },
+      };
+
+      // @ts-expect-error - accessing the before hook
+      await hook['tool.execute.before'](beforeInput, beforeOutput);
+
+      const afterInput = {
+        tool: 'write',
+        sessionID: 'test-session',
+        callID: 'test-call-failed-write',
+      };
+      const afterOutput = {
+        title: 'original-title',
+        output: 'Error: write failed',
+        metadata: {} as Record<string, unknown>,
+      };
+
+      // @ts-expect-error - accessing the after hook
+      await hook['tool.execute.after'](afterInput, afterOutput);
+
+      expect(afterOutput.metadata.diff).toBeUndefined();
+      expect(afterOutput.metadata.filediff).toBeUndefined();
+      expect(afterOutput.filePath).toBeUndefined();
+      expect(afterOutput.path).toBeUndefined();
+      expect(afterOutput.file).toBeUndefined();
+      expect(afterOutput.title).toBe('original-title');
+    });
+  });
+
   describe('skips non-write tools', () => {
     it('does not process read tool', async () => {
       const hook = createHashlineEditDiffEnhancerHook({

@@ -49,6 +49,11 @@ function extractFilePath(args: Record<string, unknown>): string | undefined {
   return typeof path === 'string' ? path : undefined;
 }
 
+function isFailedWriteOutput(output: string): boolean {
+  const normalized = output.trim().toLowerCase();
+  return normalized.startsWith('error') || normalized.includes('failed');
+}
+
 async function captureOldContent(filePath: string): Promise<string> {
   try {
     const file = Bun.file(filePath);
@@ -99,6 +104,10 @@ export function createHashlineEditDiffEnhancerHook(
       pendingCaptures.delete(key);
 
       const { content: oldContent, filePath } = captured;
+
+      if (isFailedWriteOutput(output.output)) {
+        return;
+      }
 
       let newContent: string;
       try {

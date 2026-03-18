@@ -39,12 +39,29 @@ export function applyHashlineEditsWithReport(
     append: 1,
     prepend: 2,
   };
-  const sortedEdits = [...dedupeResult.edits].sort((a, b) => {
-    const lineA = getEditLineNumber(a);
-    const lineB = getEditLineNumber(b);
-    if (lineB !== lineA) return lineB - lineA;
-    return (EDIT_PRECEDENCE[a.op] ?? 3) - (EDIT_PRECEDENCE[b.op] ?? 3);
-  });
+  const sortedEdits = dedupeResult.edits
+    .map((edit, index) => ({ edit, index }))
+    .sort((a, b) => {
+      const lineA = getEditLineNumber(a.edit);
+      const lineB = getEditLineNumber(b.edit);
+      if (lineB !== lineA) return lineB - lineA;
+
+      const precedenceDelta =
+        (EDIT_PRECEDENCE[a.edit.op] ?? 3) - (EDIT_PRECEDENCE[b.edit.op] ?? 3);
+      if (precedenceDelta !== 0) return precedenceDelta;
+
+      const isAnchoredInsertPair =
+        (a.edit.op === 'append' || a.edit.op === 'prepend') &&
+        a.edit.op === b.edit.op &&
+        a.edit.pos &&
+        a.edit.pos === b.edit.pos;
+      if (isAnchoredInsertPair) {
+        return b.index - a.index;
+      }
+
+      return a.index - b.index;
+    })
+    .map(({ edit }) => edit);
 
   let noopEdits = 0;
 

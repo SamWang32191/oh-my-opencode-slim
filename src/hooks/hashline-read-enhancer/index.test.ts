@@ -274,6 +274,27 @@ describe('hashline-read-enhancer', () => {
       await Bun.file('/tmp/test-write-output.txt').delete();
     });
 
+    it('enhances standard write success output with line count', async () => {
+      const hook = createHashlineReadEnhancerHook({} as never, {
+        hashline_edit: { enabled: true },
+      });
+      const writeInput = { ...baseInput, tool: 'write' };
+      const output = {
+        title: 'test.txt',
+        output: 'File written successfully.',
+        metadata: { filepath: '/tmp/test-standard-write-success.txt' },
+      };
+
+      await Bun.write('/tmp/test-standard-write-success.txt', 'line 1\nline 2');
+
+      // @ts-expect-error - accessing the after hook
+      await hook['tool.execute.after'](writeInput, output);
+
+      expect(output.output).toBe('File written successfully. 2 lines written.');
+
+      await Bun.file('/tmp/test-standard-write-success.txt').delete();
+    });
+
     it('does not modify write output if file does not exist', async () => {
       const hook = createHashlineReadEnhancerHook({} as never, {
         hashline_edit: { enabled: true },

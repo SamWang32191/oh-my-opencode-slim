@@ -110,6 +110,30 @@ describe('applyHashlineEdits applies', () => {
     });
   });
 
+  describe('same-anchor insertion order', () => {
+    test('preserves request order for anchored append edits', () => {
+      const content = 'A\nB';
+      const edits: HashlineEdit[] = [
+        { op: 'append', pos: anchor(1, 'A'), lines: 'x' },
+        { op: 'append', pos: anchor(1, 'A'), lines: 'y' },
+      ];
+
+      const result = applyHashlineEdits(content, edits);
+      expect(result).toBe('A\nx\ny\nB');
+    });
+
+    test('preserves request order for anchored prepend edits', () => {
+      const content = 'A\nB';
+      const edits: HashlineEdit[] = [
+        { op: 'prepend', pos: anchor(2, 'B'), lines: 'x' },
+        { op: 'prepend', pos: anchor(2, 'B'), lines: 'y' },
+      ];
+
+      const result = applyHashlineEdits(content, edits);
+      expect(result).toBe('A\nx\ny\nB');
+    });
+  });
+
   describe('unanchored append on empty and non-empty files', () => {
     test('appends to non-empty file at end', () => {
       const content = 'line1\nline2';
