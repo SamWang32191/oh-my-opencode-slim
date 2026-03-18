@@ -57,6 +57,7 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@opencode-ai/plugin": "^1.2.6",
     "@opencode-ai/sdk": "^1.2.6",
+    "diff": "^8.0.3",
     "vscode-jsonrpc": "^8.2.0",
     "vscode-languageserver-protocol": "^3.17.5",
     "zod": "^4.3.6"
