@@ -60,6 +60,32 @@ An official JSON Schema is included in the package for editor validation and aut
 
 This enables autocomplete and inline validation in VS Code, Neovim, and other editors that support JSON Schema.
 
+### Hash-Anchored Editing
+
+Enable the hashline workflow in your project config:
+
+```jsonc
+{
+  "hashline_edit": true
+}
+```
+
+When enabled, `read` output is rewritten to include stable `LINE#ID` anchors:
+
+```text
+11#VK| function hello() {
+22#XJ|   return 'world';
+33#MB| }
+```
+
+Use the feature as a `read -> edit -> re-read` loop:
+
+1. Run `read` and copy the current `LINE#ID` anchors.
+2. Run `edit` using those anchors instead of reproducing surrounding text.
+3. Re-run `read` and use the new anchors for the next change.
+
+If the file changed after the last read, the edit is rejected and the tool returns fresh `>>> LINE#ID` recovery snippets so the agent can retry against the current file instead of applying a stale edit.
+
 ### For LLM Agents
 
 Paste this into any coding agent:

@@ -130,7 +130,8 @@ describe('hashline-read-enhancer', () => {
       // This tests the case where openLine.startsWith(openTag) && openLine !== openTag
       const output = {
         title: 'test.txt',
-        output: '<content>1: inline content on same line\n2: second line\n</content>',
+        output:
+          '<content>1: inline content on same line\n2: second line\n</content>',
         metadata: {},
       };
 

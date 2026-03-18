@@ -3,10 +3,7 @@ export const NIBBLE_STR = 'ZPMQVRWSNKTXJBYH';
 export const HASH_ALPHABET = NIBBLE_STR;
 // Pre-compiled regex for matching 2-char hash
 export const HASH_PATTERN = new RegExp(`^[${NIBBLE_STR}]{2}$`);
-export const HASH_CAPTURE_PATTERN = new RegExp(
-  `([0-9]+#[${NIBBLE_STR}]{2})`,
-  'g',
-);
+export const HASH_CAPTURE_PATTERN = new RegExp(`([0-9]+#[${NIBBLE_STR}]{2})`);
 export const HASH_SUFFIX_PATTERN = new RegExp(`#([${NIBBLE_STR}]{2})$`);
 
 export const HASHLINE_DICT = Array.from({ length: 256 }, (_, i) => {

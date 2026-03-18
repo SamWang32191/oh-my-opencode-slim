@@ -133,10 +133,12 @@ describe('hashline wiring', () => {
     };
 
     // Execute the before hook
-    await (plugin['tool.execute.before'] as (input: unknown, output: unknown) => Promise<void>)(
-      beforeInput,
-      beforeOutput,
-    );
+    await (
+      plugin['tool.execute.before'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(beforeInput, beforeOutput);
 
     // The before hook should have captured the old content for the diff
     // We verify this by checking if the after hook can retrieve it
@@ -152,19 +154,26 @@ describe('hashline wiring', () => {
     };
 
     // Execute the after hook - it should find the captured content and attach diff metadata
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // Verify diff metadata was attached
     expect(afterOutput.metadata).toBeDefined();
-    expect((afterOutput.metadata as Record<string, unknown>).filediff).toBeDefined();
-    const filediff = (afterOutput.metadata as Record<string, unknown>).filediff as Record<string, unknown>;
+    expect(
+      (afterOutput.metadata as Record<string, unknown>).filediff,
+    ).toBeDefined();
+    const filediff = (afterOutput.metadata as Record<string, unknown>)
+      .filediff as Record<string, unknown>;
     expect(filediff.before).toBe('old content\nline 2\nline 3');
     expect(filediff.additions).toBe(0); // same number of lines, content changed
     expect(filediff.deletions).toBe(0);
-    expect((afterOutput.metadata as Record<string, unknown>).diff).toBeDefined();
+    expect(
+      (afterOutput.metadata as Record<string, unknown>).diff,
+    ).toBeDefined();
   });
 
   // Test 3: tool.execute.before does NOT capture when hashline_edit disabled
@@ -209,10 +218,12 @@ describe('hashline wiring', () => {
     };
 
     // Execute the before hook
-    await (plugin['tool.execute.before'] as (input: unknown, output: unknown) => Promise<void>)(
-      beforeInput,
-      beforeOutput,
-    );
+    await (
+      plugin['tool.execute.before'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(beforeInput, beforeOutput);
 
     // Call the after hook - no diff metadata should be attached since hashline is disabled
     const afterInput = {
@@ -226,15 +237,21 @@ describe('hashline wiring', () => {
       metadata: {},
     };
 
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // Verify NO diff metadata was attached (hashline disabled)
     expect(afterOutput.metadata).toBeDefined();
-    expect((afterOutput.metadata as Record<string, unknown>).filediff).toBeUndefined();
-    expect((afterOutput.metadata as Record<string, unknown>).diff).toBeUndefined();
+    expect(
+      (afterOutput.metadata as Record<string, unknown>).filediff,
+    ).toBeUndefined();
+    expect(
+      (afterOutput.metadata as Record<string, unknown>).diff,
+    ).toBeUndefined();
   });
 
   // Test 4: prove diff enhancer and read enhancer run in correct order within actual plugin after hook
@@ -270,12 +287,20 @@ describe('hashline wiring', () => {
     const plugin = await OhMyOpenCodeLite(mockCtx as never);
 
     // First, capture old content via before hook
-    const beforeInput = { tool: 'write', sessionID: 'order-s1', callID: 'order-c1' };
-    const beforeOutput = { args: { path: testFilePath, content: 'new content' } };
-    await (plugin['tool.execute.before'] as (input: unknown, output: unknown) => Promise<void>)(
-      beforeInput,
-      beforeOutput,
-    );
+    const beforeInput = {
+      tool: 'write',
+      sessionID: 'order-s1',
+      callID: 'order-c1',
+    };
+    const beforeOutput = {
+      args: { path: testFilePath, content: 'new content' },
+    };
+    await (
+      plugin['tool.execute.before'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(beforeInput, beforeOutput);
 
     // Write new content to trigger diff enhancer
     fs.writeFileSync(testFilePath, 'new content');
@@ -295,14 +320,17 @@ describe('hashline wiring', () => {
     };
 
     // Call the ACTUAL plugin after hook (not a wrapper)
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      writeInput,
-      writeOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(writeInput, writeOutput);
 
     // Side effect verification:
     // 1. diff-enhancer should have added filediff metadata (runs first)
-    const filediff = (writeOutput.metadata as Record<string, unknown>).filediff as Record<string, unknown> | undefined;
+    const filediff = (writeOutput.metadata as Record<string, unknown>)
+      .filediff as Record<string, unknown> | undefined;
     expect(filediff).toBeDefined();
     expect(filediff?.before).toBe('old content');
     expect(filediff?.after).toBe('new content');
@@ -352,10 +380,12 @@ describe('hashline wiring', () => {
     };
 
     // Call the after hook
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // postReadNudge should have appended its nudge text to output
     expect(afterOutput.output).toContain('Workflow Reminder');
@@ -403,10 +433,12 @@ describe('hashline wiring', () => {
     };
 
     // Call the after hook
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // jsonErrorRecovery should have appended its JSON error reminder
     expect(afterOutput.output).toContain('JSON PARSE ERROR');
@@ -454,10 +486,12 @@ describe('hashline wiring', () => {
     };
 
     // Call the after hook
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // delegateTaskRetry should have appended retry guidance
     expect(afterOutput.output).toContain('[delegate-task retry suggestion]');
@@ -497,31 +531,45 @@ describe('hashline wiring', () => {
     const plugin = await OhMyOpenCodeLite(mockCtx as never);
 
     // First, capture old content via before hook
-    const beforeInput = { tool: 'write', sessionID: 'order-s1', callID: 'order-c1' };
-    const beforeOutput = { args: { path: testFilePath, content: 'new content' } };
-    await (plugin['tool.execute.before'] as (input: unknown, output: unknown) => Promise<void>)(
-      beforeInput,
-      beforeOutput,
-    );
+    const beforeInput = {
+      tool: 'write',
+      sessionID: 'order-s1',
+      callID: 'order-c1',
+    };
+    const beforeOutput = {
+      args: { path: testFilePath, content: 'new content' },
+    };
+    await (
+      plugin['tool.execute.before'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(beforeInput, beforeOutput);
 
     // Write the new content
     fs.writeFileSync(testFilePath, 'new content');
 
     // Now call after hook with write - this exercises the full chain
-    // Use output that doesn't start with "File written successfully." 
+    // Use output that doesn't start with "File written successfully."
     // to trigger the read enhancer's write output modification
-    const afterInput = { tool: 'write', sessionID: 'order-s1', callID: 'order-c1' };
-    const afterOutput = { 
-      title: testFilePath, 
-      output: 'Successfully saved the file', 
+    const afterInput = {
+      tool: 'write',
+      sessionID: 'order-s1',
+      callID: 'order-c1',
+    };
+    const afterOutput = {
+      title: testFilePath,
+      output: 'Successfully saved the file',
       metadata: { filePath: testFilePath } as Record<string, unknown>,
     };
 
     // Call the actual plugin after hook
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // The order in index.ts (lines 356-403) is:
     // 1. hashlineEditDiffEnhancerHook - adds filediff metadata
@@ -529,15 +577,18 @@ describe('hashline wiring', () => {
     // 3. delegateTaskRetryHook - no-op for write (not task/background_task)
     // 4. jsonErrorRecoveryHook - no-op for success output (no JSON error)
     // 5. postReadNudgeHook - no-op for write (only read)
-    
+
     // Verify diff enhancer ran first (filediff added)
-    expect((afterOutput.metadata as Record<string, unknown>).filediff).toBeDefined();
-    const filediff = (afterOutput.metadata as Record<string, unknown>).filediff as Record<string, unknown>;
+    expect(
+      (afterOutput.metadata as Record<string, unknown>).filediff,
+    ).toBeDefined();
+    const filediff = (afterOutput.metadata as Record<string, unknown>)
+      .filediff as Record<string, unknown>;
     expect(filediff.before).toBe('old content');
     expect(filediff.after).toBe('new content');
-    
+
     // Verify read enhancer ran second (modified output to include line count)
-    // The read enhancer for write tool transforms "Successfully saved the file" 
+    // The read enhancer for write tool transforms "Successfully saved the file"
     // to "File written successfully. X lines written."
     expect(afterOutput.output).toContain('lines written');
   });
@@ -581,15 +632,18 @@ describe('hashline wiring', () => {
 
     const afterOutput = {
       title: 'Background Task',
-      output: '[ERROR] failed to parse JSON: unexpected token at line 1\nmissing run_in_background parameter',
+      output:
+        '[ERROR] failed to parse JSON: unexpected token at line 1\nmissing run_in_background parameter',
       metadata: {},
     };
 
     // Call the actual plugin after hook
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // Verify both hooks executed (produced side effects):
     // 1. delegateTaskRetry should append retry guidance
@@ -606,7 +660,9 @@ describe('hashline wiring', () => {
     // 2. jsonErrorRecoveryHook (line 379)
     // So delegate should appear BEFORE json in output
 
-    const delegatePos = afterOutput.output.indexOf('[delegate-task retry suggestion]');
+    const delegatePos = afterOutput.output.indexOf(
+      '[delegate-task retry suggestion]',
+    );
     const jsonPos = afterOutput.output.indexOf('JSON PARSE ERROR');
 
     expect(delegatePos).toBeGreaterThan(-1);
@@ -662,10 +718,12 @@ describe('hashline wiring', () => {
     };
 
     // Call the actual plugin after hook
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // Verify read enhancer ran (transformed output with hashlines)
     // The read enhancer should have added hashline prefixes like "1#HASH|"
@@ -720,14 +778,17 @@ describe('hashline wiring', () => {
       sessionID: 'diff-test-session',
       callID: 'diff-call-1',
     };
-    const newContent = 'line one modified\nline two\nline three added\nline four';
+    const newContent =
+      'line one modified\nline two\nline three added\nline four';
     const beforeOutput = {
       args: { path: testFilePath, content: newContent },
     };
-    await (plugin['tool.execute.before'] as (input: unknown, output: unknown) => Promise<void>)(
-      beforeInput,
-      beforeOutput,
-    );
+    await (
+      plugin['tool.execute.before'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(beforeInput, beforeOutput);
 
     // Actually write the new content to the file (simulating tool execution)
     fs.writeFileSync(testFilePath, newContent);
@@ -743,27 +804,33 @@ describe('hashline wiring', () => {
       output: 'File written successfully.',
       metadata: {},
     };
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      afterInput,
-      afterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(afterInput, afterOutput);
 
     // Verify diff metadata is comprehensive
-    const filediff = (afterOutput.metadata as Record<string, unknown>).filediff as Record<string, unknown>;
+    const filediff = (afterOutput.metadata as Record<string, unknown>)
+      .filediff as Record<string, unknown>;
     expect(filediff).toBeDefined();
-    
+
     // Old content should match what was in file before write
     expect(filediff.before).toBe(oldContent);
-    
+
     // New content should match what was written
     expect(filediff.after).toBe(newContent);
-    
+
     // Verify diff string exists
-    expect((afterOutput.metadata as Record<string, unknown>).diff).toBeDefined();
-    const diffStr = (afterOutput.metadata as Record<string, unknown>).diff as string;
+    expect(
+      (afterOutput.metadata as Record<string, unknown>).diff,
+    ).toBeDefined();
+    const diffStr = (afterOutput.metadata as Record<string, unknown>)
+      .diff as string;
     expect(diffStr).toContain('line one');
     expect(diffStr).toContain('line one modified');
-    
+
     // Verify line count changes are tracked (at least some changes occurred)
     expect(filediff.additions).toBeGreaterThan(0);
     expect(filediff.deletions).toBeGreaterThan(0);
@@ -811,10 +878,12 @@ describe('hashline wiring', () => {
       output: '<content>\n1: first line\n2: second line\n</content>',
       metadata: { filePath: testFilePath },
     };
-    await (plugin['tool.execute.after'] as (input: unknown, output: unknown) => Promise<void>)(
-      readAfterInput,
-      readAfterOutput,
-    );
+    await (
+      plugin['tool.execute.after'] as (
+        input: unknown,
+        output: unknown,
+      ) => Promise<void>
+    )(readAfterInput, readAfterOutput);
 
     // Output should NOT contain hashline transformation when hashline is disabled
     // Hashline transformation adds #<hash>| pattern, which should NOT be present

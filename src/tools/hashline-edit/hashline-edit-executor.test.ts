@@ -1,11 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import {
-  existsSync,
-  mkdirSync,
-  rmdirSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, rmdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { ToolContext } from '@opencode-ai/plugin/tool';
 import { computeLineHash } from './hash-computation';
@@ -25,7 +19,7 @@ function createMockContext(dir: string): ToolContext {
   } as ToolContext;
 }
 
-function createMockContextWithMetadata(dir: string): ToolContext & {
+function _createMockContextWithMetadata(dir: string): ToolContext & {
   metadata: (value: unknown) => void;
 } {
   let capturedMetadata: unknown;
@@ -81,7 +75,7 @@ describe('hashline-edit-executor', () => {
     testDirs.push(testDir);
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
-    writeFileSync(filePath, 'content');
+    await Bun.write(filePath, 'content');
 
     const result = await executeHashlineEditTool(
       { filePath, delete: true, rename: 'renamed.txt', edits: [] },
@@ -96,7 +90,7 @@ describe('hashline-edit-executor', () => {
     testDirs.push(testDir);
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
-    writeFileSync(filePath, 'content');
+    await Bun.write(filePath, 'content');
 
     const result = await executeHashlineEditTool(
       { filePath, edits: [] },
@@ -111,7 +105,7 @@ describe('hashline-edit-executor', () => {
     testDirs.push(testDir);
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
-    writeFileSync(filePath, 'some content');
+    await Bun.write(filePath, 'some content');
 
     const result = await executeHashlineEditTool(
       { filePath, delete: true, edits: [] },
@@ -119,7 +113,7 @@ describe('hashline-edit-executor', () => {
     );
 
     expect(result).toBe(`Successfully deleted ${filePath}`);
-    expect(existsSync(filePath)).toBe(false);
+    expect(await Bun.file(filePath).exists()).toBe(false);
   });
 
   test('missing file failure for anchored edits', async () => {
@@ -145,7 +139,7 @@ describe('hashline-edit-executor', () => {
     testDirs.push(testDir);
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'newfile.txt');
-    if (existsSync(filePath)) unlinkSync(filePath);
+    if (await Bun.file(filePath).exists()) unlinkSync(filePath);
 
     const result = await executeHashlineEditTool(
       {
@@ -156,7 +150,7 @@ describe('hashline-edit-executor', () => {
     );
 
     expect(result).toBe(`Updated ${filePath}`);
-    expect(existsSync(filePath)).toBe(true);
+    expect(await Bun.file(filePath).exists()).toBe(true);
     expect(await Bun.file(filePath).text()).toBe('new content');
   });
 
@@ -165,7 +159,7 @@ describe('hashline-edit-executor', () => {
     testDirs.push(testDir);
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'newfile2.txt');
-    if (existsSync(filePath)) unlinkSync(filePath);
+    if (await Bun.file(filePath).exists()) unlinkSync(filePath);
 
     const result = await executeHashlineEditTool(
       {
@@ -176,7 +170,7 @@ describe('hashline-edit-executor', () => {
     );
 
     expect(result).toBe(`Updated ${filePath}`);
-    expect(existsSync(filePath)).toBe(true);
+    expect(await Bun.file(filePath).exists()).toBe(true);
     expect(await Bun.file(filePath).text()).toBe('first line');
   });
 
@@ -186,7 +180,7 @@ describe('hashline-edit-executor', () => {
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
     const content = 'line1\nline2\nline3';
-    writeFileSync(filePath, content);
+    await Bun.write(filePath, content);
     const hash = computeHash(2, 'line2');
 
     const result = await executeHashlineEditTool(
@@ -206,7 +200,7 @@ describe('hashline-edit-executor', () => {
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
     const newPath = join(testDir, 'renamed.txt');
-    writeFileSync(filePath, 'content');
+    await Bun.write(filePath, 'content');
     const hash = computeHash(1, 'content');
 
     const result = await executeHashlineEditTool(
@@ -219,8 +213,8 @@ describe('hashline-edit-executor', () => {
     );
 
     expect(result).toBe(`Moved ${filePath} to ${newPath}`);
-    expect(existsSync(newPath)).toBe(true);
-    expect(existsSync(filePath)).toBe(false);
+    expect(await Bun.file(newPath).exists()).toBe(true);
+    expect(await Bun.file(filePath).exists()).toBe(false);
   });
 
   test('no-op edit returns an error string', async () => {
@@ -229,7 +223,7 @@ describe('hashline-edit-executor', () => {
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
     const content = 'same content';
-    writeFileSync(filePath, content);
+    await Bun.write(filePath, content);
     const hash = computeHash(1, content);
 
     const result = await executeHashlineEditTool(
@@ -250,7 +244,7 @@ describe('hashline-edit-executor', () => {
     mkdirSync(testDir, { recursive: true });
     const filePath = join(testDir, 'test.txt');
     const content = 'line1\nline2\nline3';
-    writeFileSync(filePath, content);
+    await Bun.write(filePath, content);
     const hash = computeHash(2, 'line2');
 
     // Create context with metadata capture

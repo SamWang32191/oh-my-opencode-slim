@@ -156,9 +156,10 @@ function extractFilePath(metadata: unknown): string | undefined {
   return undefined;
 }
 
-async function appendWriteHashlineOutput(
-  output: { output: string; metadata: unknown },
-): Promise<void> {
+async function appendWriteHashlineOutput(output: {
+  output: string;
+  metadata: unknown;
+}): Promise<void> {
   if (output.output.startsWith(WRITE_SUCCESS_MARKER)) {
     return;
   }

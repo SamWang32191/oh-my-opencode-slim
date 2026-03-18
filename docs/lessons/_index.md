@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `full-suite-hashline-tests-should-avoid-mocked-node-fs-assertions` | project | `tests`, `bun`, `mocks`, `hashline`, `isolation` | 2026-03-18 |
 | `npm-trusted-publisher-publish-needs-provenance` | project | `npm`, `trusted-publisher`, `github-actions`, `oidc`, `releases` | 2026-03-16 |
 | `github-actions-merge-base-needs-full-history` | project | `github-actions`, `git`, `releases`, `validation`, `history` | 2026-03-16 |
 | `git-tags-only-capture-committed-version-bumps` | project | `git`, `tags`, `releases`, `versioning`, `automation` | 2026-03-16 |

@@ -45,6 +45,17 @@ describe('validation', () => {
     test('returns trimmed original for invalid format', () => {
       expect(normalizeLineRef('invalid')).toBe('invalid');
     });
+
+    test('extracts ref from copied anchor with surrounding text', () => {
+      // This tests the "copied anchor" case - when user copies a hashline ref
+      // that has extra text before/after it, like from a chat message
+      expect(normalizeLineRef('foo 1#ZB bar')).toBe('1#ZB');
+    });
+
+    test('extracts ref from messy anchor with multiple # chars', () => {
+      // Edge case: text with multiple hash-like patterns
+      expect(normalizeLineRef('see 1#ZB in the code')).toBe('1#ZB');
+    });
   });
 
   describe('parseLineRef', () => {
