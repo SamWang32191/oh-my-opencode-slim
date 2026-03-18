@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import {
   addPluginToOpenCodeConfig,
   detectCurrentConfig,
@@ -9,6 +10,7 @@ import {
   writeLiteConfig,
 } from './config-manager';
 import { CUSTOM_SKILLS, installCustomSkill } from './custom-skills';
+import { getExistingLiteConfigPath } from './paths';
 import { installSkill, RECOMMENDED_SKILLS } from './skills';
 import type { ConfigMergeResult, InstallArgs, InstallConfig } from './types';
 
@@ -130,7 +132,6 @@ async function runInstall(config: InstallConfig): Promise<number> {
     const { ok } = await checkOpenCodeInstalled();
     if (!ok) return 1;
   }
-
   printStep(step++, totalSteps, 'Adding oh-my-opencode-medium plugin...');
   if (config.dryRun) {
     printInfo('Dry run mode - skipping plugin installation');
@@ -138,7 +139,6 @@ async function runInstall(config: InstallConfig): Promise<number> {
     const pluginResult = await addPluginToOpenCodeConfig();
     if (!handleStepResult(pluginResult, 'Plugin added')) return 1;
   }
-
   printStep(step++, totalSteps, 'Disabling OpenCode default agents...');
   if (config.dryRun) {
     printInfo('Dry run mode - skipping agent disabling');
@@ -157,8 +157,26 @@ async function runInstall(config: InstallConfig): Promise<number> {
     printInfo('Dry run mode - configuration that would be written:');
     console.log(`\n${JSON.stringify(liteConfig, null, 2)}\n`);
   } else {
-    const liteResult = writeLiteConfig(config);
-    if (!handleStepResult(liteResult, 'Config written')) return 1;
+    const configPath = getExistingLiteConfigPath();
+    const configExists = existsSync(configPath);
+
+    if (configExists && !config.reset) {
+      printInfo(
+        `Configuration already exists at ${configPath}. Use --reset to overwrite.`,
+      );
+    } else {
+      const liteResult = writeLiteConfig(
+        config,
+        configExists ? configPath : undefined,
+      );
+      if (
+        !handleStepResult(
+          liteResult,
+          configExists ? 'Config reset' : 'Config written',
+        )
+      )
+        return 1;
+    }
   }
 
   if (config.installSkills) {
@@ -252,6 +270,7 @@ export async function install(args: InstallArgs): Promise<number> {
     installCustomSkills: args.skills === 'yes',
     setupMode: 'quick',
     dryRun: args.dryRun,
+    reset: args.reset ?? false,
   };
 
   return runInstall(config);
