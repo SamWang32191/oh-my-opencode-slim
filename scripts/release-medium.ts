@@ -104,6 +104,7 @@ export function normalizeRemoteTagRefs(output: string) {
   return output
     .split('\n')
     .filter((line) => line !== '')
+    .map((line) => line.replace(/\r$/, ''))
     .map((line) => {
       const parts = line.split('\t');
 
@@ -121,6 +122,10 @@ export function deriveReachableUpstreamTags(
 ) {
   const reachableTagSet = new Set(reachableTags);
   return upstreamTags.filter((tag) => reachableTagSet.has(tag));
+}
+
+export function shouldFetchUpstreamTags(dryRun: boolean) {
+  return !dryRun;
 }
 
 function ensureUpstreamRemoteExists() {
@@ -314,9 +319,13 @@ function runRelease(args: ReleaseArgs) {
   ensureUpstreamRemoteExists();
   ensureOnMediumBranch();
   ensureCleanWorkingTree();
-  fetchUpstreamTags();
+
+  if (shouldFetchUpstreamTags(args.dryRun)) {
+    fetchUpstreamTags();
+  }
 
   const plan = buildReleasePlanDetails(args);
+  ensureTagDoesNotExist(plan.gitTag);
 
   if (args.dryRun) {
     printDryRun(plan);
@@ -337,7 +346,6 @@ function runRelease(args: ReleaseArgs) {
   writeReleaseMapping(nextMappingContent);
   stageReleaseFiles();
   commitRelease(plan.packageVersion);
-  ensureTagDoesNotExist(plan.gitTag);
   createAnnotatedTag(plan.gitTag);
 
   console.log(`Updated package.json to ${plan.packageVersion}`);

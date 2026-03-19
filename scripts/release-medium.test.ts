@@ -3,6 +3,7 @@ import {
   deriveReachableUpstreamTags,
   normalizeRemoteTagRefs,
   parseReleaseArgs,
+  shouldFetchUpstreamTags,
 } from './release-medium';
 
 describe('parseReleaseArgs', () => {
@@ -37,6 +38,14 @@ describe('normalizeRemoteTagRefs', () => {
       ),
     ).toEqual(['v1.2.3', 'v1.2.4']);
   });
+
+  test('strips CRLF line endings from ls-remote output', () => {
+    expect(
+      normalizeRemoteTagRefs(
+        'abc123\trefs/tags/v1.2.3\r\n' + 'def456\trefs/tags/v1.2.4\r\n',
+      ),
+    ).toEqual(['v1.2.3', 'v1.2.4']);
+  });
 });
 
 describe('deriveReachableUpstreamTags', () => {
@@ -47,5 +56,15 @@ describe('deriveReachableUpstreamTags', () => {
         ['v1.2.3', 'v2.0.0', 'v1.2.4'],
       ),
     ).toEqual(['v1.2.4', 'v1.2.3']);
+  });
+});
+
+describe('shouldFetchUpstreamTags', () => {
+  test('skips fetch in dry-run mode', () => {
+    expect(shouldFetchUpstreamTags(true)).toBe(false);
+  });
+
+  test('fetches before a real release', () => {
+    expect(shouldFetchUpstreamTags(false)).toBe(true);
   });
 });
