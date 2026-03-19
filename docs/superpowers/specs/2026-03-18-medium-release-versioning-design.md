@@ -190,7 +190,7 @@ git tag itself no longer encodes the upstream version.
 The release flow remains terminal-first:
 
 1. sync and merge upstream into `medium` as usual
-2. run a release command
+2. run `bun run release -- --version X.Y.Z`
 3. push `medium`
 4. push the release tag
 5. create the GitHub Release manually in the web UI using the recorded metadata
@@ -213,10 +213,18 @@ tags. Instead, it should:
 - create an annotated git tag
 - print a copy-paste-ready GitHub Release body to stdout
 
+The canonical script names under `package.json` should become:
+
+- `release`
+- `release:dry`
+
+The old `release:medium` and `release:medium:dry` names should be removed
+rather than preserved as aliases.
+
 The release command must use explicit version input as the primary interaction
 model:
 
-- `bun run release:medium --version 1.0.0`
+- `bun run release -- --version 1.0.0`
 
 This is preferred over bump shorthands because the fork now owns an independent
 semver line and the human releasing should decide whether the next version is a
@@ -229,7 +237,7 @@ complexity.
 The dry-run preview remains part of the operator workflow and should be exposed
 as:
 
-- `bun run release:medium:dry --version 1.0.0`
+- `bun run release:dry -- --version 1.0.0`
 
 The dry run must perform the same validation and metadata computation as the
 real release command, but it must not modify files, create commits, update the
@@ -276,8 +284,9 @@ The implementation must update release documentation so the documented SOP
 matches the new strategy:
 
 - `docs/medium-release.md`
-- any package metadata tests or docs that assert old release commands or tag
-  formats
+- `package.json` scripts and package metadata tests that still assert
+  `release:medium` / `release:medium:dry`
+- any other docs that still assert old release commands or tag formats
 - workflow comments or validation that still mention `v*-medium.*`
 
 ### Historical Compatibility
