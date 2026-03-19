@@ -26,6 +26,16 @@ const CURRENT_CONTENT_WITHOUT_FINAL_NEWLINE =
   '- Notes:\n' +
   '  - Initial stable release';
 
+const CURRENT_CONTENT_WITH_EXTRA_FINAL_BLANK_LINE =
+  '# Release Mapping\n\n' +
+  '> Maps medium releases to upstream tags and commits.\n\n' +
+  '## 1.0.0\n\n' +
+  '- Date: 2026-03-19\n' +
+  '- Upstream Tag: v0.8.3\n' +
+  '- Upstream Commit: abc1234\n' +
+  '- Notes:\n' +
+  '  - Initial stable release\n\n';
+
 describe('RELEASE_MAPPING_HEADER', () => {
   test('matches the canonical release mapping header', () => {
     expect(RELEASE_MAPPING_HEADER).toBe(
@@ -73,6 +83,17 @@ describe('upsertReleaseMapping', () => {
   test('throws when the final section lacks a trailing newline', () => {
     expect(() =>
       upsertReleaseMapping(CURRENT_CONTENT_WITHOUT_FINAL_NEWLINE, {
+        mediumVersion: '1.0.1',
+        releaseDate: '2026-03-20',
+        upstreamTag: 'v0.8.4',
+        upstreamCommit: 'def5678',
+      }),
+    ).toThrow('Release mapping file is malformed.');
+  });
+
+  test('throws when the final section has an extra blank line', () => {
+    expect(() =>
+      upsertReleaseMapping(CURRENT_CONTENT_WITH_EXTRA_FINAL_BLANK_LINE, {
         mediumVersion: '1.0.1',
         releaseDate: '2026-03-20',
         upstreamTag: 'v0.8.4',
