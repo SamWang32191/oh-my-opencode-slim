@@ -45,6 +45,10 @@ function parseReleaseMappingContent(currentContent: string) {
     throw new Error('Release mapping file is malformed.');
   }
 
+  if (!currentContent.endsWith('\n')) {
+    throw new Error('Release mapping file is malformed.');
+  }
+
   const remainder = currentContent.slice(RELEASE_MAPPING_HEADER.length);
 
   if (remainder === '') {

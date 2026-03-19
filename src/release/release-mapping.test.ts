@@ -16,6 +16,16 @@ const CURRENT_CONTENT =
   '- Notes:\n' +
   '  - Initial stable release\n';
 
+const CURRENT_CONTENT_WITHOUT_FINAL_NEWLINE =
+  '# Release Mapping\n\n' +
+  '> Maps medium releases to upstream tags and commits.\n\n' +
+  '## 1.0.0\n\n' +
+  '- Date: 2026-03-19\n' +
+  '- Upstream Tag: v0.8.3\n' +
+  '- Upstream Commit: abc1234\n' +
+  '- Notes:\n' +
+  '  - Initial stable release';
+
 describe('RELEASE_MAPPING_HEADER', () => {
   test('matches the canonical release mapping header', () => {
     expect(RELEASE_MAPPING_HEADER).toBe(
@@ -59,30 +69,48 @@ describe('upsertReleaseMapping', () => {
       }),
     ).toThrow('Release mapping file is malformed.');
   });
+
+  test('throws when the final section lacks a trailing newline', () => {
+    expect(() =>
+      upsertReleaseMapping(CURRENT_CONTENT_WITHOUT_FINAL_NEWLINE, {
+        mediumVersion: '1.0.1',
+        releaseDate: '2026-03-20',
+        upstreamTag: 'v0.8.4',
+        upstreamCommit: 'def5678',
+      }),
+    ).toThrow('Release mapping file is malformed.');
+  });
 });
 
 describe('formatGithubReleaseBody', () => {
   test('renders the upstream reference and medium-specific changes section', () => {
-    const body = formatGithubReleaseBody({
-      mediumVersion: '1.0.0',
-      upstreamTag: 'v0.8.3',
-      upstreamCommit: 'abc1234',
-      notes: 'Initial stable release',
-    });
-
-    expect(body).toContain('Based on upstream v0.8.3 (abc1234)');
-    expect(body).toContain('### Medium-specific changes');
-    expect(body).toContain('- Initial stable release');
+    expect(
+      formatGithubReleaseBody({
+        mediumVersion: '1.0.0',
+        upstreamTag: 'v0.8.3',
+        upstreamCommit: 'abc1234',
+        notes: 'Initial stable release',
+      }),
+    ).toBe(
+      '## 1.0.0\n\n' +
+        'Based on upstream v0.8.3 (abc1234)\n\n' +
+        '### Medium-specific changes\n' +
+        '- Initial stable release',
+    );
   });
 
   test('uses the default notes when notes are omitted', () => {
-    const body = formatGithubReleaseBody({
-      mediumVersion: '1.0.0',
-      upstreamTag: 'v0.8.3',
-      upstreamCommit: 'abc1234',
-    });
-
-    expect(body).toContain(DEFAULT_RELEASE_NOTES);
-    expect(body).toContain('### Medium-specific changes');
+    expect(
+      formatGithubReleaseBody({
+        mediumVersion: '1.0.0',
+        upstreamTag: 'v0.8.3',
+        upstreamCommit: 'abc1234',
+      }),
+    ).toBe(
+      '## 1.0.0\n\n' +
+        'Based on upstream v0.8.3 (abc1234)\n\n' +
+        '### Medium-specific changes\n' +
+        `- ${DEFAULT_RELEASE_NOTES}`,
+    );
   });
 });
