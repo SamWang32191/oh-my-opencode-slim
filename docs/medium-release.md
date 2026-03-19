@@ -114,10 +114,9 @@ git remote add upstream <upstream-url>
 
 ### `Tag already exists: vX.Y.Z`
 
-That stable release version was already used. Fetch tags and rerun the dry run
-with a new version:
+That stable release version was already used. Choose a new `--version` and rerun
+the dry run:
 
 ```bash
-git fetch upstream --prune --tags
 bun run release:dry -- --version X.Y.Z
 ```

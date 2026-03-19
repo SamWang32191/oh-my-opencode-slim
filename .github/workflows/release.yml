@@ -41,7 +41,7 @@ jobs:
             exit 1
           fi
 
-          git fetch origin medium --depth=1
+          git fetch origin medium --prune
           if ! git merge-base --is-ancestor HEAD origin/medium; then
             echo "Tagged commit is not reachable from origin/medium"
             exit 1
