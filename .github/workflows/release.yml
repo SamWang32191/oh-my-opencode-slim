@@ -1,51 +1,53 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (X.Y.Z)
+        required: true
+        type: string
+      notes:
+        description: Optional one-line notes
+        required: false
+        type: string
+      dry_run:
+        description: Preview release without mutating/publishing
+        required: false
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: read
   id-token: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-medium
   cancel-in-progress: false
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout code
+      - name: Guard dispatch branch is medium
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "medium" ]; then
+            echo "This workflow must be dispatched from medium. Current ref: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout medium branch
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}
 
-      - name: Verify release tag and package version
-        run: |
-          set -euo pipefail
-
-          TAG_NAME="${GITHUB_REF_NAME}"
-          if ! printf '%s' "$TAG_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Invalid release tag: ${TAG_NAME}"
-            exit 1
-          fi
-
-          TAG_VERSION="${TAG_NAME#v}"
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "Tag version ${TAG_VERSION} does not match package.json version ${PACKAGE_VERSION}"
-            exit 1
-          fi
-
-          git fetch origin medium --prune
-          if ! git merge-base --is-ancestor HEAD origin/medium; then
-            echo "Tagged commit is not reachable from origin/medium"
-            exit 1
-          fi
+      - name: Create local medium branch at dispatch SHA
+        run: git checkout -B medium "$GITHUB_SHA"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -58,17 +60,22 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - name: Upgrade npm
-        run: npm install -g npm@latest
-
-      - name: Remove token auth so npm uses OIDC
-        run: |
-          unset NODE_AUTH_TOKEN
-          npm config delete //registry.npmjs.org/:_authToken || true
-          rm -f ~/.npmrc .npmrc || true
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Assert current branch is medium
+        run: |
+          set -euo pipefail
+          CURRENT_BRANCH="$(git branch --show-current)"
+          if [ "$CURRENT_BRANCH" != "medium" ]; then
+            echo "Expected branch medium, got: $CURRENT_BRANCH"
+            exit 1
+          fi
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Run lint
         run: bun run lint
@@ -82,7 +89,60 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Publish to npm
+      - name: Prepare release body and local release state
         env:
-          NODE_AUTH_TOKEN: ""
-        run: npm publish --provenance --access public --registry=https://registry.npmjs.org/
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_NOTES: ${{ inputs.notes }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          UPSTREAM_REMOTE_URL: https://github.com/alvinunreal/oh-my-opencode-slim.git
+        run: |
+          set -euo pipefail
+          RELEASE_CI_ARGS=(--version "$RELEASE_VERSION" --body-file "$RUNNER_TEMP/release-body.md")
+
+          if [ -n "${RELEASE_NOTES}" ]; then
+            RELEASE_CI_ARGS+=(--notes "$RELEASE_NOTES")
+          fi
+
+          if [ "${DRY_RUN}" = "true" ]; then
+            RELEASE_CI_ARGS+=(--dry-run)
+          fi
+
+          bun run scripts/release-ci.ts "${RELEASE_CI_ARGS[@]}"
+
+      - name: Upload release body artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-body-${{ inputs.version }}
+          path: ${{ runner.temp }}/release-body.md
+          if-no-files-found: error
+
+      - name: Push release commit
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          git push origin medium
+
+      - name: Publish to npm
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          unset NODE_AUTH_TOKEN
+          npm config delete //registry.npmjs.org/:_authToken || true
+          rm -f ~/.npmrc .npmrc || true
+          npm publish --provenance --access public --registry=https://registry.npmjs.org/
+
+      - name: Push release tag
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create GitHub Release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "v${{ inputs.version }}" --repo "${{ github.repository }}" --notes-file "$RUNNER_TEMP/release-body.md"
