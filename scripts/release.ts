@@ -42,13 +42,15 @@ function runCommand(command: string, args: string[], errorMessage: string) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+  const stderr = result.stderr ?? '';
+  const stdout = result.stdout ?? '';
 
   if (result.status !== 0) {
-    const details = result.stderr.trim() || result.stdout.trim();
+    const details = stderr.trim() || stdout.trim();
     throw new Error(details ? `${errorMessage}\n${details}` : errorMessage);
   }
 
-  return result.stdout.trim();
+  return stdout.trim();
 }
 
 function runGitCommand(args: string[], errorMessage: string) {

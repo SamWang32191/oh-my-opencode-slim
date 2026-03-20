@@ -20,6 +20,8 @@ does not float to newer commits merged after dispatch.
    branch in the GitHub Actions UI.
 2. Provide required `version` (`X.Y.Z`).
 3. Optionally provide one-line `notes`.
+4. Optionally set `dry_run = true` to run end-to-end validation without
+   persistent release-state mutation or publishing.
 
 The workflow then:
 
@@ -28,13 +30,23 @@ The workflow then:
 2. installs dependencies (`bun install --frozen-lockfile`)
 3. runs quality gates: `bun run lint`, `bun run typecheck`, `bun test`,
    `bun run build`
-4. runs `bun run scripts/release-ci.ts --version ... --body-file ... [--notes ...]`
-   to prepare the local release commit, local tag, and release body
+4. runs `bun run scripts/release-ci.ts --version ... --body-file ... [--notes ...] [--dry-run]`
+   to generate release body, and (non-dry-run only) prepare local release
+   commit/tag state
 5. uploads `release-body.md` as a workflow artifact for recovery
-6. pushes the release commit to `origin/medium`
-7. publishes to npm using OIDC Trusted Publisher (`npm publish --provenance`)
-8. pushes the release tag `vX.Y.Z`
-9. creates the GitHub Release using `gh release create --notes-file`
+6. (non-dry-run only) pushes the release commit to `origin/medium`
+7. (non-dry-run only) publishes to npm using OIDC Trusted Publisher
+   (`npm publish --provenance`)
+8. (non-dry-run only) pushes the release tag `vX.Y.Z`
+9. (non-dry-run only) creates the GitHub Release using
+   `gh release create --notes-file`
+
+When `dry_run = true`, workflow still executes checkout/setup/install/lint/
+typecheck/test/build, temporarily updates/fetches `upstream` refs/tags as
+needed, fetches compare+PR data, generates the same release body, and uploads
+the artifact preview. It does **not** perform persistent release-state
+mutation: no `package.json` update, no `docs/release-mapping.md` update, no
+commit/tag creation, and no push/publish/GitHub Release creation.
 
 `UPSTREAM_REMOTE_URL` is set to:
 
@@ -55,9 +67,9 @@ pushed yet), do not assume rerunning the same version is always safe.
   commit/tag state after validating publish conditions
 
 If `npm publish` already succeeds but tag push or GitHub Release creation fails,
-prefer finishing from the already prepared release commit:
+recover from the release commit already pushed to `medium`:
 
-- push the existing `vX.Y.Z` tag
+- recreate `vX.Y.Z` from that pushed release commit, then push the tag
 - create the missing GitHub Release
 - if needed, download `release-body-<version>` workflow artifact to recover the
   exact release notes body

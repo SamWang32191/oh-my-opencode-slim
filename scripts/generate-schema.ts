@@ -50,9 +50,11 @@ function formatSchemaArtifacts(paths: string[]) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+  const stderr = result.stderr ?? '';
+  const stdout = result.stdout ?? '';
 
   if (result.status !== 0) {
-    const details = result.stderr.trim() || result.stdout.trim();
+    const details = stderr.trim() || stdout.trim();
     throw new Error(
       details === ''
         ? 'Failed to format generated schema artifacts.'

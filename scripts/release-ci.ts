@@ -32,6 +32,7 @@ type ReleaseCiArgs = {
   requestedVersion: string;
   bodyFile: string;
   notes?: string;
+  dryRun: boolean;
 };
 
 type CompareResponse = {
@@ -50,13 +51,15 @@ function runCommand(command: string, args: string[], errorMessage: string) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+  const stderr = result.stderr ?? '';
+  const stdout = result.stdout ?? '';
 
   if (result.status !== 0) {
-    const details = result.stderr.trim() || result.stdout.trim();
+    const details = stderr.trim() || stdout.trim();
     throw new Error(details ? `${errorMessage}\n${details}` : errorMessage);
   }
 
-  return result.stdout.trim();
+  return stdout.trim();
 }
 
 function runGitCommand(args: string[], errorMessage: string) {
@@ -90,6 +93,7 @@ export function parseReleaseCiArgs(args: string[]): ReleaseCiArgs {
   let requestedVersion: string | undefined;
   let bodyFile: string | undefined;
   let notes: string | undefined;
+  let dryRun = false;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -130,6 +134,11 @@ export function parseReleaseCiArgs(args: string[]): ReleaseCiArgs {
       continue;
     }
 
+    if (arg === '--dry-run') {
+      dryRun = true;
+      continue;
+    }
+
     throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -145,7 +154,12 @@ export function parseReleaseCiArgs(args: string[]): ReleaseCiArgs {
     requestedVersion: validateRequestedReleaseVersion(requestedVersion),
     bodyFile,
     notes,
+    dryRun,
   };
+}
+
+export function shouldMutateReleaseState(dryRun: boolean) {
+  return !dryRun;
 }
 
 export function resolveGithubReleaseRepo(env: NodeJS.ProcessEnv = process.env) {
@@ -242,7 +256,7 @@ function getCurrentUpstreamRemoteUrl() {
     return null;
   }
 
-  const upstreamRemoteUrl = remoteResult.stdout.trim();
+  const upstreamRemoteUrl = (remoteResult.stdout ?? '').trim();
   return upstreamRemoteUrl === '' ? null : upstreamRemoteUrl;
 }
 
@@ -536,26 +550,33 @@ export function runReleaseCi(args = parseReleaseCiArgs(process.argv.slice(2))) {
     ensureTagDoesNotExist(releasePlan.gitTag);
 
     writeReleaseBodyFile(args.bodyFile, releaseBody);
-    writePackageVersion(releasePlan.packageVersion);
 
-    const nextMappingContent = upsertReleaseMapping(currentMappingContent, {
-      mediumVersion: releasePlan.packageVersion,
-      releaseDate,
-      upstreamTag: releasePlan.upstreamTag,
-      upstreamCommit,
-      notes,
-    });
+    if (shouldMutateReleaseState(args.dryRun)) {
+      writePackageVersion(releasePlan.packageVersion);
 
-    writeReleaseMapping(nextMappingContent);
-    stageReleaseFiles();
-    commitRelease(releasePlan.packageVersion);
-    createAnnotatedTag(releasePlan.gitTag);
+      const nextMappingContent = upsertReleaseMapping(currentMappingContent, {
+        mediumVersion: releasePlan.packageVersion,
+        releaseDate,
+        upstreamTag: releasePlan.upstreamTag,
+        upstreamCommit,
+        notes,
+      });
 
-    console.log(`Updated package.json to ${releasePlan.packageVersion}`);
-    console.log('Updated docs/release-mapping.md');
+      writeReleaseMapping(nextMappingContent);
+      stageReleaseFiles();
+      commitRelease(releasePlan.packageVersion);
+      createAnnotatedTag(releasePlan.gitTag);
+
+      console.log(`Updated package.json to ${releasePlan.packageVersion}`);
+      console.log('Updated docs/release-mapping.md');
+      console.log(`Created tag ${releasePlan.gitTag}`);
+      console.log('Prepared local release commit and tag');
+    } else {
+      console.log('Dry run enabled: skipped release state mutations');
+      console.log('Dry run enabled: skipped local commit/tag creation');
+    }
+
     console.log(`Wrote release body to ${args.bodyFile}`);
-    console.log(`Created tag ${releasePlan.gitTag}`);
-    console.log('Prepared local release commit and tag');
   } finally {
     restoreUpstreamRemote(upstreamRemoteState);
   }

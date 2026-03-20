@@ -11,6 +11,11 @@ on:
         description: Optional one-line notes
         required: false
         type: string
+      dry_run:
+        description: Preview release without mutating/publishing
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -84,20 +89,27 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Prepare release commit, tag, and body
+      - name: Prepare release body and local release state
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ inputs.version }}
           RELEASE_NOTES: ${{ inputs.notes }}
+          DRY_RUN: ${{ inputs.dry_run }}
           UPSTREAM_REMOTE_URL: https://github.com/alvinunreal/oh-my-opencode-slim.git
         run: |
           set -euo pipefail
+          RELEASE_CI_ARGS=(--version "$RELEASE_VERSION" --body-file "$RUNNER_TEMP/release-body.md")
+
           if [ -n "${RELEASE_NOTES}" ]; then
-            bun run scripts/release-ci.ts --version "$RELEASE_VERSION" --body-file "$RUNNER_TEMP/release-body.md" --notes "$RELEASE_NOTES"
-          else
-            bun run scripts/release-ci.ts --version "$RELEASE_VERSION" --body-file "$RUNNER_TEMP/release-body.md"
+            RELEASE_CI_ARGS+=(--notes "$RELEASE_NOTES")
           fi
+
+          if [ "${DRY_RUN}" = "true" ]; then
+            RELEASE_CI_ARGS+=(--dry-run)
+          fi
+
+          bun run scripts/release-ci.ts "${RELEASE_CI_ARGS[@]}"
 
       - name: Upload release body artifact
         uses: actions/upload-artifact@v4
@@ -107,11 +119,13 @@ jobs:
           if-no-files-found: error
 
       - name: Push release commit
+        if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
           git push origin medium
 
       - name: Publish to npm
+        if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
           unset NODE_AUTH_TOKEN
@@ -120,11 +134,13 @@ jobs:
           npm publish --provenance --access public --registry=https://registry.npmjs.org/
 
       - name: Push release tag
+        if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
           git push origin "v${{ inputs.version }}"
 
       - name: Create GitHub Release
+        if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

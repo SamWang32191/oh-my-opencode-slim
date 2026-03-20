@@ -6,6 +6,7 @@ import {
   determineCompareBaseAndHead,
   parseReleaseCiArgs,
   resolveGithubReleaseRepo,
+  shouldMutateReleaseState,
   shouldWriteReleaseBodyFile,
 } from './release-ci';
 
@@ -22,6 +23,7 @@ describe('parseReleaseCiArgs', () => {
       requestedVersion: '1.2.3',
       bodyFile: '/tmp/release-body.md',
       notes: undefined,
+      dryRun: false,
     });
   });
 
@@ -39,6 +41,24 @@ describe('parseReleaseCiArgs', () => {
       requestedVersion: '1.2.3',
       bodyFile: '/tmp/release-body.md',
       notes: 'Patch release',
+      dryRun: false,
+    });
+  });
+
+  test('parses dry-run flag', () => {
+    expect(
+      parseReleaseCiArgs([
+        '--version',
+        '1.2.3',
+        '--body-file',
+        '/tmp/release-body.md',
+        '--dry-run',
+      ]),
+    ).toEqual({
+      requestedVersion: '1.2.3',
+      bodyFile: '/tmp/release-body.md',
+      notes: undefined,
+      dryRun: true,
     });
   });
 
@@ -52,6 +72,12 @@ describe('parseReleaseCiArgs', () => {
     expect(() => parseReleaseCiArgs(['--version', '1.2.3'])).toThrow(
       'Missing required --body-file <path> argument.',
     );
+  });
+
+  test('fails when required args are missing even with --dry-run', () => {
+    expect(() =>
+      parseReleaseCiArgs(['--version', '1.2.3', '--dry-run']),
+    ).toThrow('Missing required --body-file <path> argument.');
   });
 
   test('fails when --notes is multiline', () => {
@@ -133,6 +159,16 @@ describe('shouldWriteReleaseBodyFile', () => {
 
   test('returns false for stdout sentinel', () => {
     expect(shouldWriteReleaseBodyFile('-')).toBe(false);
+  });
+});
+
+describe('shouldMutateReleaseState', () => {
+  test('returns false in dry-run mode', () => {
+    expect(shouldMutateReleaseState(true)).toBe(false);
+  });
+
+  test('returns true in normal mode', () => {
+    expect(shouldMutateReleaseState(false)).toBe(true);
   });
 });
 

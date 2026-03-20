@@ -47,6 +47,7 @@
     "dev": "bun run build && opencode",
     "prepublishOnly": "bun run build",
     "release": "bun run scripts/release.ts",
+    "release:dry": "bun run scripts/release.ts --dry-run",
     "release:patch": "npm version patch && git push --follow-tags && npm publish",
     "release:minor": "npm version minor && git push --follow-tags && npm publish",
     "release:major": "npm version major && git push --follow-tags && npm publish"

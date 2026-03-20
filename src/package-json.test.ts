@@ -42,7 +42,9 @@ describe('package.json metadata', () => {
     });
 
     expect(packageJson.scripts?.release).toBe('bun run scripts/release.ts');
-    expect(packageJson.scripts?.['release:dry']).toBeUndefined();
+    expect(packageJson.scripts?.['release:dry']).toBe(
+      'bun run scripts/release.ts --dry-run',
+    );
     expect(packageJson.scripts?.['release:medium']).toBeUndefined();
     expect(packageJson.scripts?.['release:medium:dry']).toBeUndefined();
   });
