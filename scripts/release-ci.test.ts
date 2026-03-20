@@ -1,15 +1,30 @@
 import { describe, expect, test } from 'bun:test';
 import {
   assertCompareResponseComplete,
-  buildAtomicPushArgs,
   buildCompareEndpoint,
   buildUpstreamRemoteRestoreArgs,
   determineCompareBaseAndHead,
   parseReleaseCiArgs,
+  resolveGithubReleaseRepo,
   shouldWriteReleaseBodyFile,
 } from './release-ci';
 
 describe('parseReleaseCiArgs', () => {
+  test('parses required args without optional notes', () => {
+    expect(
+      parseReleaseCiArgs([
+        '--version',
+        '1.2.3',
+        '--body-file',
+        '/tmp/release-body.md',
+      ]),
+    ).toEqual({
+      requestedVersion: '1.2.3',
+      bodyFile: '/tmp/release-body.md',
+      notes: undefined,
+    });
+  });
+
   test('parses required args and optional notes', () => {
     expect(
       parseReleaseCiArgs([
@@ -59,12 +74,29 @@ describe('buildCompareEndpoint', () => {
       buildCompareEndpoint({
         base: '115bbac7e3cc76ec4cb20b51fe4c38bf3065b3a8',
         head: '3f8d17f5c6f6d0ba3df56fd6b37cfac61de8d89d',
+        githubRepository: 'SamWang32191/oh-my-opencode-medium',
       }),
     ).toBe(
       'repos/SamWang32191/oh-my-opencode-medium/compare/' +
         '115bbac7e3cc76ec4cb20b51fe4c38bf3065b3a8...' +
         '3f8d17f5c6f6d0ba3df56fd6b37cfac61de8d89d',
     );
+  });
+});
+
+describe('resolveGithubReleaseRepo', () => {
+  test('falls back to default repo when env is missing', () => {
+    expect(resolveGithubReleaseRepo({})).toBe(
+      'SamWang32191/oh-my-opencode-medium',
+    );
+  });
+
+  test('uses GITHUB_REPOSITORY when provided', () => {
+    expect(
+      resolveGithubReleaseRepo({
+        GITHUB_REPOSITORY: 'owner/custom-repo',
+      }),
+    ).toBe('owner/custom-repo');
   });
 });
 
@@ -121,18 +153,6 @@ describe('buildUpstreamRemoteRestoreArgs', () => {
       'remote',
       'remove',
       'upstream',
-    ]);
-  });
-});
-
-describe('buildAtomicPushArgs', () => {
-  test('pushes branch and tag atomically in one command', () => {
-    expect(buildAtomicPushArgs('v1.2.3')).toEqual([
-      'push',
-      '--atomic',
-      'origin',
-      'medium',
-      'v1.2.3',
     ]);
   });
 });

@@ -43,7 +43,7 @@ type UpstreamRemoteState = {
   previousUpstreamUrl: string | null;
 };
 
-const GITHUB_RELEASE_REPO = 'SamWang32191/oh-my-opencode-medium';
+const DEFAULT_GITHUB_RELEASE_REPO = 'SamWang32191/oh-my-opencode-medium';
 
 function runCommand(command: string, args: string[], errorMessage: string) {
   const result = spawnSync(command, args, {
@@ -148,14 +148,23 @@ export function parseReleaseCiArgs(args: string[]): ReleaseCiArgs {
   };
 }
 
+export function resolveGithubReleaseRepo(env: NodeJS.ProcessEnv = process.env) {
+  const githubRepository = env.GITHUB_REPOSITORY?.trim();
+  return githubRepository === undefined || githubRepository === ''
+    ? DEFAULT_GITHUB_RELEASE_REPO
+    : githubRepository;
+}
+
 export function buildCompareEndpoint({
   base,
   head,
+  githubRepository,
 }: {
   base: string;
   head: string;
+  githubRepository: string;
 }) {
-  return `repos/${GITHUB_RELEASE_REPO}/compare/${base}...${head}`;
+  return `repos/${githubRepository}/compare/${base}...${head}`;
 }
 
 export function shouldWriteReleaseBodyFile(path: string) {
@@ -170,10 +179,6 @@ export function buildUpstreamRemoteRestoreArgs(
   }
 
   return ['remote', 'set-url', 'upstream', previousUpstreamUrl];
-}
-
-export function buildAtomicPushArgs(tagName: string) {
-  return ['push', '--atomic', 'origin', 'medium', tagName];
 }
 
 export function assertCompareResponseComplete({
@@ -380,9 +385,17 @@ function writeReleaseMapping(content: string) {
   }
 }
 
-function fetchCompareCommits(base: string, head: string) {
+function fetchCompareCommits(
+  base: string,
+  head: string,
+  githubRepository: string,
+) {
   const response = runGhApi<CompareResponse>(
-    buildCompareEndpoint({ base, head }),
+    buildCompareEndpoint({
+      base,
+      head,
+      githubRepository,
+    }),
     'Failed to load compare data from GitHub API.',
   );
 
@@ -396,9 +409,12 @@ function fetchCompareCommits(base: string, head: string) {
   return commits;
 }
 
-function fetchPullRequestsForCommit(commitSha: string) {
+function fetchPullRequestsForCommit(
+  commitSha: string,
+  githubRepository: string,
+) {
   return runGhApi<CommitPullRequest[]>(
-    `repos/${GITHUB_RELEASE_REPO}/commits/${commitSha}/pulls`,
+    `repos/${githubRepository}/commits/${commitSha}/pulls`,
     `Failed to load pull requests for commit ${commitSha}.`,
   );
 }
@@ -422,13 +438,6 @@ function createAnnotatedTag(tagName: string) {
   runGitCommand(
     ['tag', '-a', tagName, '-m', `medium release ${tagName}`],
     `Failed to create annotated tag ${tagName}.`,
-  );
-}
-
-function pushReleaseBranchAndTag(tagName: string) {
-  runGitCommand(
-    buildAtomicPushArgs(tagName),
-    `Failed to atomically push medium branch and tag ${tagName}.`,
   );
 }
 
@@ -461,6 +470,7 @@ export function runReleaseCi(args = parseReleaseCiArgs(process.argv.slice(2))) {
   ensureCleanWorkingTree();
 
   const upstreamRemoteUrl = getRequiredUpstreamRemoteUrl();
+  const githubRepository = resolveGithubReleaseRepo();
   const upstreamRemoteState = configureUpstreamRemote(upstreamRemoteUrl);
 
   try {
@@ -500,12 +510,14 @@ export function runReleaseCi(args = parseReleaseCiArgs(process.argv.slice(2))) {
     const compareCommits = fetchCompareCommits(
       compareRange.base,
       compareRange.head,
+      githubRepository,
     );
     const pullRequestsByCommit: Record<string, CommitPullRequest[]> = {};
 
     for (const compareCommit of compareCommits) {
       pullRequestsByCommit[compareCommit.sha] = fetchPullRequestsForCommit(
         compareCommit.sha,
+        githubRepository,
       );
     }
 
@@ -538,13 +550,12 @@ export function runReleaseCi(args = parseReleaseCiArgs(process.argv.slice(2))) {
     stageReleaseFiles();
     commitRelease(releasePlan.packageVersion);
     createAnnotatedTag(releasePlan.gitTag);
-    pushReleaseBranchAndTag(releasePlan.gitTag);
 
     console.log(`Updated package.json to ${releasePlan.packageVersion}`);
     console.log('Updated docs/release-mapping.md');
     console.log(`Wrote release body to ${args.bodyFile}`);
     console.log(`Created tag ${releasePlan.gitTag}`);
-    console.log('Pushed medium and release tag to origin');
+    console.log('Prepared local release commit and tag');
   } finally {
     restoreUpstreamRemote(upstreamRemoteState);
   }
