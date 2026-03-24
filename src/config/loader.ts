@@ -1,22 +1,12 @@
 import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
 import { stripJsonComments } from '../cli/config-io';
+import { getConfigDir } from '../cli/paths';
 import { type PluginConfig, PluginConfigSchema } from './schema';
 
 const PROMPTS_DIR_NAME = 'oh-my-opencode-medium';
 const PRESET_ENV = 'OH_MY_OPENCODE_MEDIUM_PRESET';
 const LOG_PREFIX = '[oh-my-opencode-medium]';
-
-/**
- * Get the user's configuration directory following XDG Base Directory specification.
- * Falls back to ~/.config if XDG_CONFIG_HOME is not set.
- *
- * @returns The absolute path to the user's config directory
- */
-function getUserConfigDir(): string {
-  return process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
-}
 
 /**
  * Load and validate plugin configuration from a specific file path.
@@ -118,7 +108,8 @@ function deepMerge<T extends Record<string, unknown>>(
  * Load plugin configuration from user and project config files, merging them appropriately.
  *
  * Configuration is loaded from two locations:
- * 1. User config: ~/.config/opencode/oh-my-opencode-medium.jsonc or .json (or $XDG_CONFIG_HOME)
+ * 1. User config: $OPENCODE_CONFIG_DIR/oh-my-opencode-medium.jsonc or .json,
+ *    or ~/.config/opencode/oh-my-opencode-medium.jsonc or .json (or $XDG_CONFIG_HOME)
  * 2. Project config: <directory>/.opencode/oh-my-opencode-medium.jsonc or .json
  *
  * JSONC format is preferred over JSON (allows comments and trailing commas).
@@ -129,16 +120,12 @@ function deepMerge<T extends Record<string, unknown>>(
  * @returns Merged plugin configuration (empty object if no configs found)
  */
 export function loadPluginConfig(directory: string): PluginConfig {
-  const userConfigBasePath = path.join(
-    getUserConfigDir(),
-    'opencode',
-    PROMPTS_DIR_NAME,
-  );
+  const userConfigBasePath = path.join(getConfigDir(), 'oh-my-opencode-medium');
 
   const projectConfigBasePath = path.join(
     directory,
     '.opencode',
-    PROMPTS_DIR_NAME,
+    'oh-my-opencode-medium',
   );
 
   // Find existing config files (preferring .jsonc over .json)
@@ -209,11 +196,7 @@ export function loadAgentPrompt(
 } {
   const presetDirName =
     preset && /^[a-zA-Z0-9_-]+$/.test(preset) ? preset : undefined;
-  const promptsDir = path.join(
-    getUserConfigDir(),
-    'opencode',
-    PROMPTS_DIR_NAME,
-  );
+  const promptsDir = path.join(getConfigDir(), PROMPTS_DIR_NAME);
   const promptSearchDirs = presetDirName
     ? [path.join(promptsDir, presetDirName), promptsDir]
     : [promptsDir];
