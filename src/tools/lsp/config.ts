@@ -25,6 +25,17 @@ interface MergedServerConfig {
   initialization?: Record<string, unknown>;
 }
 
+function getOpenCodeCacheBinDir(): string {
+  if (process.platform === 'win32') {
+    return join(process.env.LOCALAPPDATA ?? homedir(), 'opencode', 'bin');
+  }
+
+  const xdgCacheHome =
+    process.env.XDG_CACHE_HOME?.trim() || join(homedir(), '.cache');
+
+  return join(xdgCacheHome, 'opencode', 'bin');
+}
+
 /**
  * Build the merged server list by combining built-in servers with user config.
  * This mirrors OpenCode core's pattern: start with built-in, then merge user config.
@@ -127,7 +138,7 @@ export function isServerInstalled(command: string[]): boolean {
 
   const cmd = command[0];
 
-  // Absolute paths
+  // Path-like commands
   if (cmd.includes('/') || cmd.includes('\\')) {
     return existsSync(cmd);
   }
@@ -136,10 +147,8 @@ export function isServerInstalled(command: string[]): boolean {
   const ext = isWindows ? '.exe' : '';
 
   // Check PATH using which (mirrors core's approach)
-  // Include OPENCODE_CONFIG_DIR/bin (or the default config dir) in the search path
-  const opencodeConfigDir =
-    process.env.OPENCODE_CONFIG_DIR ?? join(homedir(), '.config', 'opencode');
-  const opencodeBin = join(opencodeConfigDir, 'bin');
+  // Include OpenCode cache bin in the search path
+  const opencodeBin = getOpenCodeCacheBinDir();
   const searchPath =
     (process.env.PATH ?? '') + (isWindows ? ';' : ':') + opencodeBin;
 
