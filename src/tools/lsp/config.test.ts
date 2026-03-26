@@ -21,7 +21,11 @@ mock.module('which', () => ({
 }));
 
 // Now import the code to test
-import { findServerForExtension, isServerInstalled } from './config';
+import {
+  findServerForExtension,
+  isServerInstalled,
+  resolveServerCommand,
+} from './config';
 
 function withPlatform<T>(platform: NodeJS.Platform, fn: () => T): T {
   const original = Object.getOwnPropertyDescriptor(process, 'platform');
@@ -254,7 +258,120 @@ describe('config', () => {
     });
   });
 
+  describe('resolveServerCommand', () => {
+    test('should preserve command arguments', () => {
+      const resolvedPath = join(
+        '/home/user',
+        '.cache',
+        'opencode',
+        'bin',
+        'typescript-language-server',
+      );
+
+      whichSyncMock.mockReturnValue(resolvedPath);
+
+      expect(
+        resolveServerCommand(['typescript-language-server', '--stdio']),
+      ).toEqual([resolvedPath, '--stdio']);
+    });
+
+    test('should wrap Windows batch files with cmd.exe', () => {
+      process.env.LOCALAPPDATA = '/custom/localappdata';
+      process.env.PATHEXT = '.COM;.EXE;.BAT;.CMD';
+
+      const resolvedPath = win32.join(
+        '/custom/localappdata',
+        'opencode',
+        'bin',
+        'typescript-language-server.cmd',
+      );
+
+      withPlatform('win32', () => {
+        whichSyncMock.mockImplementation((_cmd, options) => {
+          expect(options?.pathExt).toBe('.COM;.EXE;.BAT;.CMD');
+          return resolvedPath;
+        });
+
+        expect(
+          resolveServerCommand(['typescript-language-server', '--stdio']),
+        ).toEqual(['cmd.exe', '/c', resolvedPath, '--stdio']);
+      });
+    });
+
+    test('should wrap Windows path-like batch commands with cmd.exe', () => {
+      const resolvedPath = win32.join(
+        'C:\\tools',
+        'custom-language-server.cmd',
+      );
+
+      withPlatform('win32', () => {
+        existsSyncMock.mockImplementation(
+          (path: string) => path === resolvedPath,
+        );
+
+        expect(resolveServerCommand([resolvedPath, '--stdio'])).toEqual([
+          'cmd.exe',
+          '/c',
+          resolvedPath,
+          '--stdio',
+        ]);
+      });
+    });
+  });
+
   describe('findServerForExtension', () => {
+    test('should resolve gopls from cache bin for .go extension', () => {
+      process.env.PATH = '/usr/local/bin:/usr/bin';
+
+      const resolvedPath = join(
+        '/home/user',
+        '.cache',
+        'opencode',
+        'bin',
+        'gopls',
+      );
+
+      whichSyncMock.mockImplementation((cmd, options) => {
+        expect(cmd).toBe('gopls');
+        expect(options?.path).toContain('/home/user/.cache/opencode/bin');
+        return resolvedPath;
+      });
+
+      const result = findServerForExtension('.go');
+      expect(result.status).toBe('found');
+      if (result.status === 'found') {
+        expect(result.server.id).toBe('gopls');
+        expect(result.server.command).toEqual([resolvedPath]);
+      }
+    });
+
+    test('should resolve jdtls from bundle bin in cache', () => {
+      process.env.PATH = '/usr/local/bin:/usr/bin';
+
+      const bundleBinDir = join(
+        '/home/user',
+        '.cache',
+        'opencode',
+        'bin',
+        'jdtls',
+        'bin',
+      );
+      const resolvedPath = join(bundleBinDir, 'jdtls');
+
+      whichSyncMock.mockImplementation((cmd, options) => {
+        expect(cmd).toBe('jdtls');
+        expect(options?.path).toContain(bundleBinDir);
+        return resolvedPath;
+      });
+
+      const result = findServerForExtension('.java');
+      expect(result.status).toBe('found');
+      if (result.status === 'found') {
+        expect(result.server.id).toBe('jdtls');
+        expect(result.server.command).toEqual([resolvedPath]);
+      }
+    });
+
     test('should return found for .ts extension if installed', () => {
       existsSyncMock.mockReturnValue(true);
       const result = findServerForExtension('.ts');

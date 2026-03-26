@@ -4,6 +4,7 @@
 
 | Card | Scope | Tags | Date |
 |---|---|---|---|
+| `lsp-command-resolution-must-match-runtime-spawn` | project | `lsp`, `command-resolution`, `spawn`, `windows`, `cache` | 2026-03-26 |
 | `opencode-lsp-binaries-live-in-cache-not-config-dir` | project | `opencode`, `lsp`, `cache`, `config`, `paths` | 2026-03-26 |
 | `user-facing-config-changes-must-update-readme-reference-and-release-notes` | project | `docs`, `config`, `readme`, `release`, `schema` | 2026-03-20 |
 | `openai-model-string-changes-affect-scoring-tests` | project | `tests`, `scoring`, `model-selection`, `openai`, `heuristics` | 2026-03-20 |
