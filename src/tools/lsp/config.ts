@@ -36,6 +36,71 @@ function getOpenCodeCacheBinDir(): string {
   return join(xdgCacheHome, 'opencode', 'bin');
 }
 
+function getSearchPathSeparator(): string {
+  return process.platform === 'win32' ? ';' : ':';
+}
+
+function getCacheSearchPaths(cmd: string): string[] {
+  const opencodeBin = getOpenCodeCacheBinDir();
+  return [opencodeBin, join(opencodeBin, cmd, 'bin')];
+}
+
+function buildSearchPath(cmd: string): string {
+  const separator = getSearchPathSeparator();
+  const pathEntries = [
+    ...(process.env.PATH?.split(separator) ?? []),
+    ...getCacheSearchPaths(cmd),
+  ].filter(Boolean);
+
+  return [...new Set(pathEntries)].join(separator);
+}
+
+function getLocalCommandCandidates(cmd: string): string[] {
+  const localBin = join(process.cwd(), 'node_modules', '.bin', cmd);
+
+  if (process.platform === 'win32') {
+    return [localBin, `${localBin}.exe`, `${localBin}.cmd`, `${localBin}.bat`];
+  }
+
+  return [localBin];
+}
+
+function toSpawnCommand(resolvedPath: string, args: string[]): string[] {
+  if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(resolvedPath)) {
+    return ['cmd.exe', '/c', resolvedPath, ...args];
+  }
+
+  return [resolvedPath, ...args];
+}
+
+export function resolveServerCommand(command: string[]): string[] | null {
+  if (command.length === 0) return null;
+
+  const [cmd, ...args] = command;
+
+  if (cmd.includes('/') || cmd.includes('\\')) {
+    return existsSync(cmd) ? toSpawnCommand(cmd, args) : null;
+  }
+
+  const resolved = whichSync.sync(cmd, {
+    path: buildSearchPath(cmd),
+    pathExt: process.platform === 'win32' ? process.env.PATHEXT : undefined,
+    nothrow: true,
+  });
+
+  if (resolved !== null) {
+    return toSpawnCommand(resolved, args);
+  }
+
+  for (const candidate of getLocalCommandCandidates(cmd)) {
+    if (existsSync(candidate)) {
+      return toSpawnCommand(candidate, args);
+    }
+  }
+
+  return null;
+}
+
 /**
  * Build the merged server list by combining built-in servers with user config.
  * This mirrors OpenCode core's pattern: start with built-in, then merge user config.
@@ -112,8 +177,13 @@ export function findServerForExtension(ext: string): ServerLookupResult {
         initialization: config.initialization,
       };
 
-      if (isServerInstalled(config.command)) {
-        return { status: 'found', server };
+      const resolvedCommand = resolveServerCommand(config.command);
+
+      if (resolvedCommand) {
+        return {
+          status: 'found',
+          server: { ...server, command: resolvedCommand },
+        };
       }
 
       return {
@@ -134,40 +204,5 @@ export function getLanguageId(ext: string): string {
 }
 
 export function isServerInstalled(command: string[]): boolean {
-  if (command.length === 0) return false;
-
-  const cmd = command[0];
-
-  // Path-like commands
-  if (cmd.includes('/') || cmd.includes('\\')) {
-    return existsSync(cmd);
-  }
-
-  const isWindows = process.platform === 'win32';
-  const ext = isWindows ? '.exe' : '';
-
-  // Check PATH using which (mirrors core's approach)
-  // Include OpenCode cache bin in the search path
-  const opencodeBin = getOpenCodeCacheBinDir();
-  const searchPath =
-    (process.env.PATH ?? '') + (isWindows ? ';' : ':') + opencodeBin;
-
-  const result = whichSync.sync(cmd, {
-    path: searchPath,
-    pathExt: isWindows ? process.env.PATHEXT : undefined,
-    nothrow: true,
-  });
-
-  if (result !== null) {
-    return true;
-  }
-
-  // Check local node_modules (where npm/yarn/pnpm install binaries)
-  const cwd = process.cwd();
-  const localBin = join(cwd, 'node_modules', '.bin', cmd);
-  if (existsSync(localBin) || existsSync(localBin + ext)) {
-    return true;
-  }
-
-  return false;
+  return resolveServerCommand(command) !== null;
 }
