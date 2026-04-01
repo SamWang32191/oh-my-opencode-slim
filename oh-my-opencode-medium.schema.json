@@ -303,6 +303,16 @@
         "type": "string"
       }
     },
+    "websearch": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "default": "exa",
+          "type": "string",
+          "enum": ["exa", "tavily"]
+        }
+      }
+    },
     "tmux": {
       "type": "object",
       "properties": {

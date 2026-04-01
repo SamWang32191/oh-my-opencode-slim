@@ -95,6 +95,12 @@ async function runBackgroundUpdateCheck(
     return;
   }
 
+  if (pluginInfo.isPinned) {
+    log(
+      '[auto-update-checker] Version is pinned; updating config entry before install.',
+    );
+  }
+
   const channel = extractChannel(pluginInfo.pinnedVersion ?? currentVersion);
   const latestVersion = await getLatestVersion(channel);
   if (!latestVersion) {
@@ -150,7 +156,6 @@ async function runBackgroundUpdateCheck(
       `[auto-update-checker] Config updated: ${pluginInfo.entry} → ${PACKAGE_NAME}@${latestVersion}`,
     );
   }
-
   invalidatePackage(PACKAGE_NAME);
 
   const installSuccess = await runBunInstallSafe(latestVersion);
