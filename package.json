@@ -1,6 +1,6 @@
 {
   "name": "oh-my-opencode-medium",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Lightweight agent orchestration plugin for OpenCode - medium fork with enhanced capabilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -2,6 +2,14 @@
 
 > Maps medium releases to upstream tags and commits.
 
+## 1.0.11
+
+- Date: 2026-04-01
+- Upstream Tag: v0.9.0
+- Upstream Commit: f1bbcb8d4037d1bb6e3f1997bb75d384d128c647
+- Notes:
+  - No medium-specific changes documented.
+
 ## 1.0.10
 
 - Date: 2026-03-31
